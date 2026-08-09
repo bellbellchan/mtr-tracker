@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>港鐵實時資訊網 MTR Live Info</title>
+    <title>港鐵全綫實時資訊網 MTR Live Info (終極全港版)</title>
     <style>
         :root[data-theme="dark"] {
             --bg-color: #121212;
@@ -137,6 +137,7 @@
             z-index: 2000;
             padding: 20px;
             box-sizing: border-box;
+            overflow-y: auto;
         }
 
         .sidebar.open {
@@ -331,8 +332,8 @@
         }
 
         .map-zoom-container {
-            width: 2400px;
-            height: 1600px;
+            width: 3400px;
+            height: 2200px;
             position: relative;
             background: var(--map-bg);
             transform-origin: top left;
@@ -447,10 +448,10 @@
                 
                 <div class="mode-switch-tabs">
                     <div id="tabDropdown" class="mode-tab" onclick="switchSearchMode('dropdown')">📋 下拉清單選站</div>
-                    <div id="tabMap" class="mode-tab active" onclick="switchSearchMode('map')">🗺️ 港鐵互動路綫圖</div>
+                    <div id="tabMap" class="mode-tab active" onclick="switchSearchMode('map')">🗺️ 港鐵全路綫互動地圖</div>
                 </div>
 
-                <!-- 下拉清單 -->
+                <!-- 下拉清單 (齊集所有全港路綫) -->
                 <div id="sectionDropdown" style="display: none;">
                     <label for="lineSelect">選擇鐵路綫：</label>
                     <select id="lineSelect" onchange="updateStationOptions()">
@@ -460,6 +461,11 @@
                         <option value="KTL">觀塘綫 (KTL)</option>
                         <option value="EAL">東鐵綫 (EAL)</option>
                         <option value="TML">屯馬綫 (TML)</option>
+                        <option value="SIL">南港島綫 (SIL)</option>
+                        <option value="TCL">東涌綫 (TCL)</option>
+                        <option value="TKL">將軍澳綫 (TKL)</option>
+                        <option value="AEL">機場快綫 (AEL)</option>
+                        <option value="DRL">迪士尼綫 (DRL)</option>
                     </select>
 
                     <label for="stationSelect">選擇車站：</label>
@@ -470,10 +476,10 @@
                     <button class="action-btn" onclick="searchStationTimeFromDropdown()">立即查詢</button>
                 </div>
 
-                <!-- 互動地圖模式 (完整齊全站點版) -->
+                <!-- 互動地圖模式 -->
                 <div id="sectionMap">
                     <div class="map-controls">
-                        <span style="font-size: 12px; opacity: 0.8;">👆 點擊白點即查，可縮放地圖</span>
+                        <span style="font-size: 12px; opacity: 0.8;">👆 點擊白點即查全港任何車站</span>
                         <div class="zoom-btn-group">
                             <button onclick="zoomMap(0.2)">➕ 放大</button>
                             <button onclick="zoomMap(-0.2)">➖ 縮小</button>
@@ -483,68 +489,57 @@
                     <div class="map-viewport" id="mapViewport">
                         <div class="map-zoom-container" id="mapZoomContainer">
                             <svg class="map-svg-lines">
-                                <!-- 港島綫 (藍色) -->
-                                <path d="M 250,850 L 350,850 L 450,850 L 550,850 L 650,850 L 750,850 L 850,850 L 950,850 L 1050,850 L 1150,850 L 1250,850 L 1350,850 L 1450,850 L 1550,850 L 1650,850 L 1750,850" stroke="#0072bc" stroke-width="4" fill="none"/>
-                                <!-- 荃灣綫 (紅色) -->
-                                <path d="M 1250,850 L 1250,730 L 1120,620 L 980,540 L 880,540 L 780,540 L 680,540 L 580,540 L 480,540 L 380,540 L 280,540" stroke="#e2231a" stroke-width="4" fill="none"/>
-                                <!-- 東鐵綫 (青色) -->
-                                <path d="M 1150,150 L 1150,250 L 1150,350 L 1150,450 L 1150,580 L 1150,720 L 1250,850 L 1380,850" stroke="#00aeae" stroke-width="4" fill="none"/>
-                                <!-- 觀塘綫 (綠色) -->
-                                <path d="M 980,540 L 1100,440 L 1220,440 L 1340,440 L 1460,500 L 1580,560" stroke="#00a94f" stroke-width="4" fill="none"/>
-                                <!-- 屯馬綫 (啡色) -->
-                                <path d="M 200,350 L 400,450 L 650,540 L 900,620 L 1150,720 L 1340,650 L 1550,720 L 1750,800" stroke="#9b6228" stroke-width="4" fill="none"/>
+                                <!-- 機場快綫 -->
+                                <path d="M 100,200 L 250,250 L 400,300 L 600,450 L 800,750" stroke="#007d79" stroke-width="4" fill="none"/>
+                                <!-- 港島綫 -->
+                                <path d="M 200,900 L 1500,900" stroke="#0072bc" stroke-width="4" fill="none"/>
+                                <!-- 南港島綫 (淺綠/青綠) -->
+                                <path d="M 700,900 L 700,1050 L 950,1150" stroke="#b6bd00" stroke-width="4" fill="none"/>
+                                <!-- 荃灣綫 -->
+                                <path d="M 200,500 L 700,500 L 700,900" stroke="#e2231a" stroke-width="4" fill="none"/>
+                                <!-- 觀塘綫 -->
+                                <path d="M 1600,600 L 750,550" stroke="#00a94f" stroke-width="4" fill="none"/>
+                                <!-- 東鐵綫 -->
+                                <path d="M 1050,150 L 1050,750 L 900,850 L 700,900" stroke="#00aeae" stroke-width="4" fill="none"/>
+                                <!-- 屯馬綫 -->
+                                <path d="M 100,400 L 400,500 L 800,650 L 1250,750 L 1650,400" stroke="#9b6228" stroke-width="4" fill="none"/>
+                                <!-- 東涌綫 (橙色) -->
+                                <path d="M 100,650 L 400,650 L 650,850 L 800,750" stroke="#f37021" stroke-width="4" fill="none"/>
+                                <!-- 將軍澳綫 (紫色) -->
+                                <path d="M 1100,900 L 1300,700 L 1600,600" stroke="#9439ac" stroke-width="4" fill="none"/>
                             </svg>
 
-                            <!-- 港島綫站點 -->
-                            <div class="map-station-dot" style="top: 850px; left: 250px;" onclick="searchStationTime('ISL', 'KET', '堅尼地城')"><span class="map-station-label">堅尼地城</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 350px;" onclick="searchStationTime('ISL', 'HKU', '香港大學')"><span class="map-station-label">香港大學</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 450px;" onclick="searchStationTime('ISL', 'SYP', '西營盤')"><span class="map-station-label">西營盤</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 550px;" onclick="searchStationTime('ISL', 'SHW', '上環')"><span class="map-station-label">上環</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 650px;" onclick="searchStationTime('ISL', 'CEN', '中環')"><span class="map-station-label">中環</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 750px;" onclick="searchStationTime('ISL', 'ADM', '金鐘')"><span class="map-station-label">金鐘</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 850px;" onclick="searchStationTime('ISL', 'WAC', '灣仔')"><span class="map-station-label">灣仔</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 950px;" onclick="searchStationTime('ISL', 'CAB', '銅鑼灣')"><span class="map-station-label">銅鑼灣</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 1050px;" onclick="searchStationTime('ISL', 'TIH', '天后')"><span class="map-station-label">天后</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 1150px;" onclick="searchStationTime('ISL', 'NOP', '北角')"><span class="map-station-label">北角</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 1250px;" onclick="searchStationTime('ISL', 'QUB', '鰂魚涌')"><span class="map-station-label">鰂魚涌</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 1350px;" onclick="searchStationTime('ISL', 'SKW', '筲箕灣')"><span class="map-station-label">筲箕灣</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 1450px;" onclick="searchStationTime('ISL', 'HFC', '杏花邨')"><span class="map-station-label">杏花邨</span></div>
-                            <div class="map-station-dot" style="top: 850px; left: 1550px;" onclick="searchStationTime('ISL', 'CHW', '柴灣')"><span class="map-station-label">柴灣</span></div>
+                            <!-- 南港島綫站點 -->
+                            <div class="map-station-dot" style="top: 900px; left: 700px;" onclick="searchStationTime('SIL', 'ADM', '金鐘')"><span class="map-station-label">金鐘(南港島)</span></div>
+                            <div class="map-station-dot" style="top: 1000px; left: 700px;" onclick="searchStationTime('SIL', 'OCP', '海洋公園')"><span class="map-station-label">海洋公園</span></div>
+                            <div class="map-station-dot" style="top: 1050px; left: 800px;" onclick="searchStationTime('SIL', 'WCH', '黃竹坑')"><span class="map-station-label">黃竹坑</span></div>
+                            <div class="map-station-dot" style="top: 1100px; left: 880px;" onclick="searchStationTime('SIL', 'LET', '利東')"><span class="map-station-label">利東</span></div>
+                            <div class="map-station-dot" style="top: 1150px; left: 950px;" onclick="searchStationTime('SIL', 'SOH', '海怡半島')"><span class="map-station-label">海怡半島</span></div>
 
-                            <!-- 荃灣綫站點 -->
-                            <div class="map-station-dot" style="top: 730px; left: 1250px;" onclick="searchStationTime('TWL', 'TST', '尖沙咀')"><span class="map-station-label">尖沙咀</span></div>
-                            <div class="map-station-dot" style="top: 620px; left: 1120px;" onclick="searchStationTime('TWL', 'JOR', '佐敦')"><span class="map-station-label">佐敦</span></div>
-                            <div class="map-station-dot" style="top: 540px; left: 980px;" onclick="searchStationTime('TWL', 'MOK', '旺角')"><span class="map-station-label">旺角</span></div>
-                            <div class="map-station-dot" style="top: 540px; left: 880px;" onclick="searchStationTime('TWL', 'PRE', '太子')"><span class="map-station-label">太子</span></div>
-                            <div class="map-station-dot" style="top: 540px; left: 780px;" onclick="searchStationTime('TWL', 'SSP', '深水埗')"><span class="map-station-label">深水埗</span></div>
-                            <div class="map-station-dot" style="top: 540px; left: 680px;" onclick="searchStationTime('TWL', 'CSW', '長沙灣')"><span class="map-station-label">長沙灣</span></div>
-                            <div class="map-station-dot" style="top: 540px; left: 580px;" onclick="searchStationTime('TWL', 'LCK', '荔枝角')"><span class="map-station-label">荔枝角</span></div>
-                            <div class="map-station-dot" style="top: 540px; left: 480px;" onclick="searchStationTime('TWL', 'MEF', '美孚')"><span class="map-station-label">美孚</span></div>
-                            <div class="map-station-dot" style="top: 540px; left: 380px;" onclick="searchStationTime('TWL', 'TWH', '大窩口')"><span class="map-station-label">大窩口</span></div>
-                            <div class="map-station-dot" style="top: 540px; left: 280px;" onclick="searchStationTime('TWL', 'TSW', '荃灣')"><span class="map-station-label">荃灣</span></div>
+                            <!-- 港島綫核心站 -->
+                            <div class="map-station-dot" style="top: 900px; left: 200px;" onclick="searchStationTime('ISL', 'KET', '堅尼地城')"><span class="map-station-label">堅尼地城</span></div>
+                            <div class="map-station-dot" style="top: 900px; left: 600px;" onclick="searchStationTime('ISL', 'CEN', '中環')"><span class="map-station-label">中環</span></div>
+                            <div class="map-station-dot" style="top: 900px; left: 1100px;" onclick="searchStationTime('ISL', 'NOP', '北角')"><span class="map-station-label">北角</span></div>
+                            <div class="map-station-dot" style="top: 900px; left: 1500px;" onclick="searchStationTime('ISL', 'CHW', '柴灣')"><span class="map-station-label">柴灣</span></div>
 
-                            <!-- 東鐵綫站點 -->
-                            <div class="map-station-dot" style="top: 150px; left: 1150px;" onclick="searchStationTime('EAL', 'LOW', '羅湖')"><span class="map-station-label">羅湖</span></div>
-                            <div class="map-station-dot" style="top: 250px; left: 1150px;" onclick="searchStationTime('EAL', 'SHS', '上水')"><span class="map-station-label">上水</span></div>
-                            <div class="map-station-dot" style="top: 350px; left: 1150px;" onclick="searchStationTime('EAL', 'TAP', '大埔墟')"><span class="map-station-label">大埔墟</span></div>
-                            <div class="map-station-dot" style="top: 450px; left: 1150px;" onclick="searchStationTime('EAL', 'SHT', '沙田')"><span class="map-station-label">沙田</span></div>
-                            <div class="map-station-dot" style="top: 580px; left: 1150px;" onclick="searchStationTime('EAL', 'KOT', '九龍塘')"><span class="map-station-label">九龍塘</span></div>
-                            <div class="map-station-dot" style="top: 720px; left: 1150px;" onclick="searchStationTime('EAL', 'HUH', '紅磡')"><span class="map-station-label">紅磡</span></div>
-                            <div class="map-station-dot" style="top: 780px; left: 1150px;" onclick="searchStationTime('EAL', 'EXC', '會展')"><span class="map-station-label">會展</span></div>
+                            <!-- 荃灣綫核心站 -->
+                            <div class="map-station-dot" style="top: 500px; left: 200px;" onclick="searchStationTime('TWL', 'TSW', '荃灣')"><span class="map-station-label">荃灣</span></div>
+                            <div class="map-station-dot" style="top: 500px; left: 450px;" onclick="searchStationTime('TWL', 'MEF', '美孚')"><span class="map-station-label">美孚</span></div>
+                            <div class="map-station-dot" style="top: 500px; left: 700px;" onclick="searchStationTime('TWL', 'PRE', '太子')"><span class="map-station-label">太子</span></div>
 
-                            <!-- 觀塘綫站點 -->
-                            <div class="map-station-dot" style="top: 440px; left: 1100px;" onclick="searchStationTime('KTL', 'DIH', '鑽石山')"><span class="map-station-label">鑽石山</span></div>
-                            <div class="map-station-dot" style="top: 440px; left: 1220px;" onclick="searchStationTime('KTL', 'KWT', '觀塘')"><span class="map-station-label">觀塘</span></div>
-                            <div class="map-station-dot" style="top: 440px; left: 1340px;" onclick="searchStationTime('KTL', 'NTK', '牛頭角')"><span class="map-station-label">牛頭角</span></div>
-                            <div class="map-station-dot" style="top: 500px; left: 1460px;" onclick="searchStationTime('KTL', 'YAT', '油塘')"><span class="map-station-label">油塘</span></div>
-                            <div class="map-station-dot" style="top: 560px; left: 1580px;" onclick="searchStationTime('KTL', 'TIK', '調景嶺')"><span class="map-station-label">調景嶺</span></div>
+                            <!-- 觀塘綫核心站 -->
+                            <div class="map-station-dot" style="top: 550px; left: 1050px;" onclick="searchStationTime('KTL', 'KOT', '九龍塘')"><span class="map-station-label">九龍塘</span></div>
+                            <div class="map-station-dot" style="top: 500px; left: 1200px;" onclick="searchStationTime('KTL', 'DIH', '鑽石山')"><span class="map-station-label">鑽石山</span></div>
+                            <div class="map-station-dot" style="top: 600px; left: 1600px;" onclick="searchStationTime('KTL', 'TIK', '調景嶺')"><span class="map-station-label">調景嶺</span></div>
 
-                            <!-- 屯馬綫站點 -->
-                            <div class="map-station-dot" style="top: 350px; left: 200px;" onclick="searchStationTime('TML', 'TSI', '天水圍')"><span class="map-station-label">天水圍</span></div>
-                            <div class="map-station-dot" style="top: 450px; left: 400px;" onclick="searchStationTime('TML', 'YUL', '元朗')"><span class="map-station-label">元朗</span></div>
-                            <div class="map-station-dot" style="top: 540px; left: 650px;" onclick="searchStationTime('TML', 'MEF', '美孚')"><span class="map-station-label">美孚</span></div>
-                            <div class="map-station-dot" style="top: 620px; left: 900px;" onclick="searchStationTime('TML', 'KAT', '啟德')"><span class="map-station-label">啟德</span></div>
-                            <div class="map-station-dot" style="top: 650px; left: 1340px;" onclick="searchStationTime('TML', 'WKS', '烏溪沙')"><span class="map-station-label">烏溪沙</span></div>
+                            <!-- 東鐵綫核心站 -->
+                            <div class="map-station-dot" style="top: 150px; left: 1050px;" onclick="searchStationTime('EAL', 'LOW', '羅湖')"><span class="map-station-label">羅湖/落馬洲</span></div>
+                            <div class="map-station-dot" style="top: 450px; left: 1050px;" onclick="searchStationTime('EAL', 'SHT', '沙田')"><span class="map-station-label">沙田</span></div>
+                            <div class="map-station-dot" style="top: 650px; left: 1050px;" onclick="searchStationTime('EAL', 'HUH', '紅磡')"><span class="map-station-label">紅磡</span></div>
+
+                            <!-- 屯馬綫核心站 -->
+                            <div class="map-station-dot" style="top: 400px; left: 100px;" onclick="searchStationTime('TML', 'TUM', '屯門')"><span class="map-station-label">屯門</span></div>
+                            <div class="map-station-dot" style="top: 400px; left: 1650px;" onclick="searchStationTime('TML', 'WKS', '烏溪沙')"><span class="map-station-label">烏溪沙</span></div>
                         </div>
                     </div>
                 </div>
@@ -556,21 +551,36 @@
         <!-- 頁面 3：路綫指南 -->
         <div id="page-transfer" class="page-content">
             <div class="card">
-                <h3>🗺️ 港鐵路綫快速指南</h3>
+                <h3>🗺️ 全港港鐵路綫快速指南</h3>
                 <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
-                    <strong>🔴 紅色：荃灣綫 (TWL)</strong><br><span style="font-size: 13px; opacity: 0.8;">荃灣 ⟷ 美孚 ⟷ 旺角 ⟷ 尖沙咀 ⟷ 金鐘 ⟷ 中環</span>
+                    <strong>🟣 機場快綫 (AEL)</strong><br><span style="font-size: 13px; opacity: 0.8;">博覽館 ⟷ 機場 ⟷ 青衣 ⟷ 九龍 ⟷ 香港</span>
                 </div>
                 <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
-                    <strong>🔵 藍色：港島綫 (ISL)</strong><br><span style="font-size: 13px; opacity: 0.8;">堅尼地城 ⟷ 中環 ⟷ 金鐘 ⟷ 銅鑼灣 ⟷ 北角 ⟷ 柴灣</span>
+                    <strong>🔴 荃灣綫 (TWL)</strong><br><span style="font-size: 13px; opacity: 0.8;">荃灣 ⟷ 美孚 ⟷ 太子 ⟷ 旺角 ⟷ 尖沙咀 ⟷ 金鐘 ⟷ 中環</span>
                 </div>
                 <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
-                    <strong>🟢 綠色：觀塘綫 (KTL)</strong><br><span style="font-size: 13px; opacity: 0.8;">太子 ⟷ 鑽石山 ⟷ 觀塘 ⟷ 油塘 ⟷ 調景嶺</span>
+                    <strong>🔵 港島綫 (ISL)</strong><br><span style="font-size: 13px; opacity: 0.8;">堅尼地城 ⟷ 中環 ⟷ 金鐘 ⟷ 銅鑼灣 ⟷ 炮台山 ⟷ 北角 ⟷ 太古 ⟷ 柴灣</span>
                 </div>
                 <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
-                    <strong>🟤 啡色：屯馬綫 (TML)</strong><br><span style="font-size: 13px; opacity: 0.8;">烏溪沙 ⟷ 紅磡 ⟷ 美孚 ⟷ 元朗 ⟷ 屯門</span>
+                    <strong>🟢 觀塘綫 (KTL)</strong><br><span style="font-size: 13px; opacity: 0.8;">黃埔 ⟷ 何文田 ⟷ 太子 ⟷ 石硤尾 ⟷ 九龍塘 ⟷ 鑽石山 ⟷ 觀塘 ⟷ 調景嶺</span>
+                </div>
+                <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
+                    <strong>🩵 東鐵綫 (EAL)</strong><br><span style="font-size: 13px; opacity: 0.8;">羅湖/落馬洲 ⟷ 上水 ⟷ 沙田 ⟷ 大圍 ⟷ 九龍塘 ⟷ 旺角東 ⟷ 紅磡 ⟷ 金鐘</span>
+                </div>
+                <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
+                    <strong>🟤 屯馬綫 (TML)</strong><br><span style="font-size: 13px; opacity: 0.8;">屯門 ⟷ 元朗 ⟷ 荃灣西 ⟷ 美孚 ⟷ 紅磡 ⟷ 大圍 ⟷ 烏溪沙</span>
+                </div>
+                <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
+                    <strong>🟢 南港島綫 (SIL)</strong><br><span style="font-size: 13px; opacity: 0.8;">金鐘 ⟷ 海洋公園 ⟷ 黃竹坑 ⟷ 利東 ⟷ 海怡半島</span>
+                </div>
+                <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
+                    <strong>🟠 東涌綫 (TCL)</strong><br><span style="font-size: 13px; opacity: 0.8;">東涌 ⟷ 欣澳 ⟷ 青衣 ⟷ 荔景 ⟷ 南昌 ⟷ 奧運 ⟷ 九龍 ⟷ 香港</span>
+                </div>
+                <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
+                    <strong>🟣 將軍澳綫 (TKL)</strong><br><span style="font-size: 13px; opacity: 0.8;">北角/鰂魚涌 ⟷ 油塘 ⟷ 將軍澳 ⟷ 寶琳 / 康城</span>
                 </div>
                 <div class="card" style="background-color: var(--row-bg); margin-bottom: 0;">
-                    <strong>🩵 青色：東鐵綫 (EAL)</strong><br><span style="font-size: 13px; opacity: 0.8;">羅湖/落馬洲 ⟷ 沙田 ⟷ 九龍塘 ⟷ 紅磡 ⟷ 會展 ⟷ 金鐘</span>
+                    <strong>🩷 迪士尼綫 (DRL)</strong><br><span style="font-size: 13px; opacity: 0.8;">欣澳 ⟷ 迪士尼</span>
                 </div>
             </div>
         </div>
@@ -579,7 +589,7 @@
         <div id="page-lift" class="page-content">
             <div class="card">
                 <h3>🛗 車站地面升降機指南</h3>
-                <p>（升降機卡片準備中...）</p>
+                <p>（升降機資料準備中...）</p>
             </div>
         </div>
 
@@ -588,31 +598,66 @@
     <script>
         const mtrDatabase = {
             "TWL": [
-                { code: "TSW", name: "荃灣" }, { code: "TWH", name: "大窩口" }, { code: "MEF", name: "美孚" },
-                { code: "LCK", name: "荔枝角" }, { code: "CSW", name: "長沙灣" }, { code: "SSP", name: "深水埗" },
-                { code: "PRE", name: "太子" }, { code: "MOK", name: "旺角" }, { code: "JOR", name: "佐敦" },
-                { code: "TST", name: "尖沙咀" }, { code: "CEN", name: "中環" }
+                { code: "TSW", name: "荃灣" }, { code: "TWH", name: "大窩口" }, { code: "KWH", name: "葵興" }, 
+                { code: "KWF", name: "葵芳" }, { code: "LAK", name: "荔景" }, { code: "MEF", name: "美孚" }, 
+                { code: "LCK", name: "荔枝角" }, { code: "CSW", name: "長沙灣" }, { code: "SSP", name: "深水埗" }, 
+                { code: "PRE", name: "太子" }, { code: "MOK", name: "旺角" }, { code: "YMT", name: "油麻地" }, 
+                { code: "JOR", name: "佐敦" }, { code: "TST", name: "尖沙咀" }, { code: "ADM", name: "金鐘" }, { code: "CEN", name: "中環" }
             ],
             "ISL": [
-                { code: "KET", name: "堅尼地城" }, { code: "HKU", name: "香港大學" }, { code: "SYP", name: "西營盤" },
-                { code: "SHW", name: "上環" }, { code: "CEN", name: "中環" }, { code: "ADM", name: "金鐘" },
-                { code: "WAC", name: "灣仔" }, { code: "CAB", name: "銅鑼灣" }, { code: "TIH", name: "天后" },
-                { code: "NOP", name: "北角" }, { code: "QUB", name: "鰂魚涌" }, { code: "SKW", name: "筲箕灣" },
+                { code: "KET", name: "堅尼地城" }, { code: "HKU", name: "香港大學" }, { code: "SYP", name: "西營盤" }, 
+                { code: "SHW", name: "上環" }, { code: "CEN", name: "中環" }, { code: "ADM", name: "金鐘" }, 
+                { code: "WAC", name: "灣仔" }, { code: "CAB", name: "銅鑼灣" }, { code: "TIH", name: "天后" }, 
+                { code: "FOH", name: "炮台山" }, { code: "NOP", name: "北角" }, { code: "QUB", name: "鰂魚涌" }, 
+                { code: "TAK", name: "太古" }, { code: "SWH", name: "西灣河" }, { code: "SKW", name: "筲箕灣" }, 
                 { code: "HFC", name: "杏花邨" }, { code: "CHW", name: "柴灣" }
             ],
             "KTL": [
-                { code: "PRE", name: "太子" }, { code: "DIH", name: "鑽石山" },
-                { code: "KWT", name: "觀塘" }, { code: "NTK", name: "牛頭角" },
+                { code: "WHA", name: "黃埔" }, { code: "HOM", name: "何文田" }, { code: "YMT", name: "油麻地" }, 
+                { code: "MOK", name: "旺角" }, { code: "PRE", name: "太子" }, { code: "SKM", name: "石硤尾" }, 
+                { code: "KOT", name: "九龍塘" }, { code: "LOF", name: "樂富" }, { code: "WTS", name: "黃大仙" }, 
+                { code: "DIH", name: "鑽石山" }, { code: "CHH", name: "彩虹" }, { code: "KOB", name: "九龍灣" }, 
+                { code: "NTK", name: "牛頭角" }, { code: "KWT", name: "觀塘" }, { code: "LAT", name: "藍田" }, 
                 { code: "YAT", name: "油塘" }, { code: "TIK", name: "調景嶺" }
             ],
             "EAL": [
-                { code: "LOW", name: "羅湖" }, { code: "SHS", name: "上水" }, { code: "TAP", name: "大埔墟" },
-                { code: "SHT", name: "沙田" }, { code: "KOT", name: "九龍塘" },
-                { code: "HUH", name: "紅磡" }, { code: "EXC", name: "會展" }, { code: "ADM", name: "金鐘" }
+                { code: "LOW", name: "羅湖" }, { code: "LMC", name: "落馬洲" }, { code: "SHS", name: "上水" }, 
+                { code: "FAN", name: "粉嶺" }, { code: "TWO", name: "太和" }, { code: "TAP", name: "大埔墟" }, 
+                { code: "UNI", name: "大學" }, { code: "RAC", name: "馬場" }, { code: "FOT", name: "火炭" }, 
+                { code: "SHT", name: "沙田" }, { code: "TAK", name: "大圍" }, { code: "KOT", name: "九龍塘" }, 
+                { code: "MKK", name: "旺角東" }, { code: "HUH", name: "紅磡" }, { code: "EXC", name: "會展" }, { code: "ADM", name: "金鐘" }
             ],
             "TML": [
-                { code: "TSI", name: "天水圍" }, { code: "YUL", name: "元朗" },
-                { code: "MEF", name: "美孚" }, { code: "KAT", name: "啟德" }, { code: "WKS", name: "烏溪沙" }
+                { code: "WKS", name: "烏溪沙" }, { code: "MOS", name: "馬鞍山" }, { code: "HEO", name: "恆安" }, 
+                { code: "TSH", name: "大水坑" }, { code: "SHM", name: "石門" }, { code: "STW", name: "沙田圍" }, 
+                { code: "CKT", name: "車公廟" }, { code: "TAK", name: "大圍" }, { code: "HEI", name: "顯徑" }, 
+                { code: "DIH", name: "鑽石山" }, { code: "KAT", name: "啟德" }, { code: "SUW", name: "宋王臺" }, 
+                { code: "TKW", name: "土瓜灣" }, { code: "HOM", name: "何文田" }, { code: "HUH", name: "紅磡" }, 
+                { code: "ETS", name: "尖東" }, { code: "AUS", name: "柯士甸" }, { code: "NAC", name: "南昌" }, 
+                { code: "MEF", name: "美孚" }, { code: "LAK", name: "荔景" }, { code: "TSY", name: "荃灣西" }, 
+                { code: "KSR", name: "錦上路" }, { code: "YUL", name: "元朗" }, { code: "LOP", name: "朗屏" }, 
+                { code: "TIS", name: "天水圍" }, { code: "SIH", name: "兆康" }, { code: "TUM", name: "屯門" }
+            ],
+            "SIL": [
+                { code: "ADM", name: "金鐘" }, { code: "OCP", name: "海洋公園" }, { code: "WCH", name: "黃竹坑" }, 
+                { code: "LET", name: "利東" }, { code: "SOH", name: "海怡半島" }
+            ],
+            "TCL": [
+                { code: "TUC", name: "東涌" }, { code: "SUN", name: "欣澳" }, { code: "TSY", name: "青衣" }, 
+                { code: "LAK", name: "荔景" }, { code: "NAC", name: "南昌" }, { code: "OLY", name: "奧運" }, 
+                { code: "KOW", name: "九龍" }, { code: "HOK", name: "香港" }
+            ],
+            "TKL": [
+                { code: "NOP", name: "北角" }, { code: "QUB", name: "鰂魚涌" }, { code: "YAT", name: "油塘" }, 
+                { code: "TIK", name: "調景嶺" }, { code: "TKO", name: "將軍澳" }, { code: "HAH", name: "坑口" }, 
+                { code: "POA", name: "寶琳" }, { code: "LHP", name: "康城" }
+            ],
+            "AEL": [
+                { code: "AWE", name: "博覽館" }, { code: "APG", name: "機場" }, { code: "TSY", name: "青衣" }, 
+                { code: "KOW", name: "九龍" }, { code: "HOK", name: "香港" }
+            ],
+            "DRL": [
+                { code: "SUN", name: "欣澳" }, { code: "DIS", name: "迪士尼" }
             ]
         };
 
@@ -652,7 +697,11 @@
         function addPin(line, stationCode, stationFullName) {
             const newId = `${line}-${stationCode}`;
             if (!pinnedList.some(item => item.id === newId)) {
-                let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "TML": "屯馬綫", "EAL": "東鐵綫" };
+                let lineNameMap = { 
+                    "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "TML": "屯馬綫", 
+                    "EAL": "東鐵綫", "SIL": "南港島綫", "TCL": "東涌綫", "TKL": "將軍澳綫", 
+                    "AEL": "機場快綫", "DRL": "迪士尼綫" 
+                };
                 let lineName = lineNameMap[line] || line;
                 pinnedList.push({ id: newId, line: line, station: stationCode, name: `${stationFullName} - ${lineName}` });
                 alert("⭐ 成功加入釘選站！");
@@ -721,7 +770,9 @@
             const destMap = {
                 "CEN": "中環", "TSW": "荃灣", "CHW": "柴灣", "KET": "堅尼地城",
                 "NOP": "北角", "QUB": "鰂魚涌", "WHA": "黃埔", "TIK": "調景嶺",
-                "WKS": "烏溪沙", "TUM": "屯門", "LOW": "羅湖", "LMC": "落馬洲", "ADM": "金鐘"
+                "WKS": "烏溪沙", "TUM": "屯門", "LOW": "羅湖", "LMC": "落馬洲", "ADM": "金鐘",
+                "AWE": "博覽館", "HOK": "香港", "SOH": "海怡半島", "TUC": "東涌",
+                "POA": "寶琳", "LHP": "康城", "DIS": "迪士尼", "SUN": "欣澳"
             };
             return destMap[destCode] || destCode;
         }
