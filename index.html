@@ -105,23 +105,6 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        /* 🎨 風格選擇器下拉選單 */
-        .theme-selector {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        select {
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            font-size: 14px;
-        }
-
         .auto-refresh-badge {
             font-size: 12px;
             background-color: var(--accent-color);
@@ -129,68 +112,216 @@
             padding: 4px 8px;
             border-radius: 20px;
         }
+
+        /* 📱 側邊導航選單 (Sidebar) */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            transition: left 0.3s ease;
+            z-index: 2000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .menu-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+        .sidebar-section {
+            margin-top: 25px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+        .sidebar-section label {
+            font-size: 14px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        /* 遮罩背景 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            z-index: 1500;
+        }
+        .overlay.show {
+            display: block;
+        }
+
+        /* 頁面切換內容區 */
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <button class="menu-btn" onclick="toggleMenu()">...</button>
-        <h1>🚇 港鐵實時資訊網</h1>
-        <div class="auto-refresh-badge">⏱️ 15秒自動刷新</div>
+        <button class="menu-btn" onclick="toggleSidebar()">...</button>
+        <h1 id="headerTitle">⭐ 我的釘選站 (Pinned)</h1>
+        <div class="auto-refresh-badge">⏱️ 15s</div>
     </header>
 
-    <div class="container">
-        <!-- 風格切換設定區 -->
-        <div class="card theme-selector">
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>🧭 導航選單</h3>
+            <button class="close-btn" onclick="toggleSidebar()">✕</button>
+        </div>
+
+        <div class="menu-item active" onclick="switchPage('pinned', '⭐ 我的釘選站 (Pinned)')">⭐ 實時候車時間 (已Pin)</div>
+        <div class="menu-item" onclick="switchPage('search', '🔍 搜尋全港車站')">🔍 搜尋全港車站</div>
+        <div class="menu-item" onclick="switchPage('transfer', '🗺️ 轉車路線規劃')">🗺️ 轉車路線規劃</div>
+        <div class="menu-item" onclick="switchPage('lift', '🛗 車站地面升降機')">🛗 車站地面升降機</div>
+
+        <div class="sidebar-section">
             <label for="themeSelect">🎨 選擇外觀風格：</label>
             <select id="themeSelect" onchange="changeTheme(this.value)">
                 <option value="dark">黑色風格 (Dark)</option>
                 <option value="light">白色風格 (Light)</option>
                 <option value="pink">粉紅色風格 (Pink)</option>
                 <option value="blue">藍色風格 (Blue)</option>
-                <option value="animal">動物森友會風 (Animal Crossing)</option>
+                <option value="animal">動物森友會風 (Animal)</option>
                 <option value="pikmin">手繪皮克敏風 (Pikmin)</option>
             </select>
         </div>
+    </div>
 
-        <!-- 測試用卡片：第一部分預告 -->
-        <div class="card">
-            <h3>⏱️ 第一部分：實時候車時間</h3>
-            <p>（此處將會顯示即時倒數、頭班車/尾班車及 Pin 釘選功能...）</p>
+    <div class="container">
+
+        <div id="page-pinned" class="page-content active">
+            <div class="card">
+                <h3>📌 旺角站 (Mong Kok) - 荃灣綫</h3>
+                <p><strong>月台 1 (往中環)</strong>：下一班車 <strong>2 分鐘</strong> | 尾班車 00:45</p>
+                <p><strong>月台 2 (往荃灣)</strong>：下一班車 <strong>4 分鐘</strong> | 尾班車 00:52</p>
+            </div>
+            <div class="card">
+                <h3>📌 金鐘站 (Admiralty) - 港島綫</h3>
+                <p><strong>月台 1 (往柴灣)</strong>：下一班車 <strong>1 分鐘</strong> | 尾班車 01:02</p>
+            </div>
+            <p style="text-align: center; font-size: 13px; opacity: 0.6;">💡 提示：你可以喺選單去「搜尋全港車站」加更多 Pin！</p>
         </div>
 
-        <!-- 測試用卡片：第二部分預告 -->
-        <div class="card">
-            <h3>🗺️ 第二部分：轉車路線規劃</h3>
-            <p>（此處將會加入港鐵互動地圖與車卡智能建議...）</p>
+        <div id="page-search" class="page-content">
+            <div class="card">
+                <h3>🔍 搜尋全港車站候車時間</h3>
+                <p>（此處將會加入輸入框搜尋、詳細頭尾班車與普通展開多條路線功能...）</p>
+            </div>
         </div>
 
-        <!-- 測試用卡片：第三部分預告 -->
-        <div class="card">
-            <h3>🛗 第三部分：車站地面升降機指南</h3>
-            <p>（此處將會加入雙軌查詢及升降機卡片...）</p>
+        <div id="page-transfer" class="page-content">
+            <div class="card">
+                <h3>🗺️ 轉車路線規劃</h3>
+                <p>（此處將會加入支援縮放的港鐵地圖、方案選擇及車卡升降機/扶手電梯建議...）</p>
+            </div>
         </div>
+
+        <div id="page-lift" class="page-content">
+            <div class="card">
+                <h3>🛗 車站地面升降機指南</h3>
+                <p>（此處將會加入雙軌查詢：文字搜尋 + 縮放地圖，以及升降機詳細卡片...）</p>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // 切換主題風格的 JavaScript 程式碼
+        // 控制側邊選單開關
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('show');
+        }
+
+        // 切換頁面
+        function switchPage(pageId, titleText) {
+            // 隱藏所有頁面
+            const pages = document.querySelectorAll('.page-content');
+            pages.forEach(page => page.classList.remove('active'));
+
+            // 顯示目標頁面
+            document.getElementById('page-' + pageId).classList.add('active');
+
+            // 更改頂部標題
+            document.getElementById('headerTitle').innerText = titleText;
+
+            // 移除選單的高亮，將點擊的項目高亮
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach(item => item.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // 關閉側邊選單
+            toggleSidebar();
+        }
+
+        // 切換主題風格
         function changeTheme(themeName) {
             document.documentElement.setAttribute('data-theme', themeName);
-            // 順便記住使用者的選擇
             localStorage.setItem('mtr_theme', themeName);
         }
 
-        // 讀取之前儲存過嘅主題
+        // 載入時恢復之前儲存嘅主題
         window.onload = function() {
             const savedTheme = localStorage.getItem('mtr_theme');
             if (savedTheme) {
                 document.documentElement.setAttribute('data-theme', savedTheme);
                 document.getElementById('themeSelect').value = savedTheme;
             }
-        }
-
-        function toggleMenu() {
-            alert("左上角選單功能即將推出！");
         }
     </script>
 
