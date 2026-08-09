@@ -292,7 +292,6 @@ async function fetchETA(line, station, container, isPreview) {
       container.innerHTML = ""; 
       let hasData = false; 
       
-      // 只取每方向最快到的一班車
       if (schedule.UP && schedule.UP.length > 0) { 
         renderSingleTrain(schedule.UP[0], container, "月台 1"); 
         hasData = true; 
