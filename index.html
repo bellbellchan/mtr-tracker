@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MTR 候車與路線導航</title>
+<title>MTR 智能地圖與路線導航</title>
 <style>
 :root { 
   --bg-color: #fbf9f4; 
@@ -38,7 +38,7 @@ header {
   box-shadow: 0 6px 0 #549f7a; 
 } 
 header h1 { 
-  font-size: 1.3rem; 
+  font-size: 1.2rem; 
   color: white; 
   text-shadow: 2px 2px 0px #549f7a; 
   letter-spacing: 1px; 
@@ -53,10 +53,6 @@ header h1 {
   cursor: pointer;
   color: #549f7a;
   box-shadow: 0 3px 0 #549f7a;
-}
-.menu-btn:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #549f7a;
 }
 .dropdown-menu {
   display: none;
@@ -143,7 +139,6 @@ button.action-btn:active {
 .btn-unpin {
   background-color: #e57373;
   box-shadow: 0 4px 0 #c65353;
-  text-shadow: 1px 1px 0px #c65353;
   font-size: 0.8rem;
   padding: 6px 12px;
   width: auto;
@@ -170,9 +165,6 @@ button.action-btn:active {
   background: #fdfdfd; 
   border: 2px solid #eef2e6; 
   border-radius: 14px;
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
 } 
 .dir-title { 
   font-size: 1.05rem; 
@@ -202,10 +194,6 @@ button.action-btn:active {
 .eta-time.imminent { 
   color: #e57373; 
 } 
-.eta-time.departed { 
-  color: #b5a496; 
-  font-size: 0.95rem;
-}
 .loading { 
   text-align: center; 
   color: #a18e7e; 
@@ -224,6 +212,31 @@ button.action-btn:active {
   border-radius: 16px;
   padding: 14px;
   margin-bottom: 10px;
+}
+
+/* 地圖選站點按鈕風格 */
+.map-selector-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.station-pick-card {
+  background: #fcfbfa;
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  padding: 12px;
+}
+.station-pick-card span {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #a18e7e;
+  display: block;
+  margin-bottom: 4px;
+}
+.station-pick-card b {
+  font-size: 1.05rem;
+  color: #5a4536;
 }
 
 /* 港鐵風格格仔路線顯示 */
@@ -264,14 +277,14 @@ button.action-btn:active {
 
 <header>
   <button class="menu-btn" onclick="toggleMenu()">…</button>
-  <h1>🍃 MTR 候車與路線導航</h1>
+  <h1>🍃 MTR 智能路線導航</h1>
   <div style="width: 38px;"></div>
 </header>
 
 <div class="dropdown-menu" id="nav-menu">
   <button onclick="switchTab('tab-station')">🔍 功能一：尋找車站班次</button>
-  <button onclick="switchTab('tab-route')">🎯 功能二：尋找路線與轉車格仔</button>
-  <button onclick="switchTab('tab-elevator')">🛗 功能三：各站閘內升降機指南</button>
+  <button onclick="switchTab('tab-route')">🎯 功能二：地圖直點路線與轉車指南</button>
+  <button onclick="switchTab('tab-elevator')">🛗 功能三：全港車站升降機大指南</button>
 </div>
 
 <div class="section" id="pinned-section" style="display: none;">
@@ -305,68 +318,35 @@ button.action-btn:active {
   <button class="action-btn btn-pin" onclick="pinCurrentStation()">📌 Pin 實呢個站</button>
 </div>
 
-<!-- ================= 頁面二：尋找路線與格仔 ================= -->
+<!-- ================= 頁面二：地圖直點路線與轉車指南 ================= -->
 <div class="section tab-content" id="tab-route" style="display: none;">
-  <h2>🎯 功能二：尋找路線與轉車格仔</h2>
+  <h2>🎯 功能二：地圖直點路線與轉車指南</h2>
+  <p style="font-size:0.85rem; color:#8e7a68; margin-bottom:12px;">直接喺下方模擬地圖選擇出發同目的地，即睇詳細轉車步驟！</p>
   
-  <label>出發鐵路綫</label>
-  <select id="src-line-select" onchange="updateStations('src-line-select', 'src-station-select')">
-    <option value="">-- 請選擇出發鐵路綫 --</option>
-    <option value="KTL">觀塘綫</option>
-    <option value="ISL">港島綫</option>
-    <option value="TWL">荃灣綫</option>
-    <option value="SIL">南港島綫</option>
-    <option value="TKL">將軍澳綫</option>
-    <option value="EAL">東鐵綫</option>
-    <option value="TML">屯馬綫</option>
-    <option value="TCL">東涌綫</option>
-    <option value="AEL">機場快綫</option>
-  </select>
+  <div class="map-selector-box">
+    <div class="station-pick-card">
+      <span>1. 點擊選擇出發車站</span>
+      <select id="map-src-select" style="margin-top:6px; margin-bottom:0;">
+        <option value="">-- 請選擇出發車站 --</option>
+      </select>
+    </div>
+    <div class="station-pick-card">
+      <span>2. 點擊選擇目的地車站</span>
+      <select id="map-dest-select" style="margin-top:6px; margin-bottom:0;">
+        <option value="">-- 請選擇目的地車站 --</option>
+      </select>
+    </div>
+  </div>
 
-  <label>出發車站</label>
-  <select id="src-station-select">
-    <option value="">-- 請先選擇出發鐵路綫 --</option>
-  </select>
-
-  <label>目的地鐵路綫</label>
-  <select id="dest-line-select" onchange="updateStations('dest-line-select', 'dest-station-select')">
-    <option value="">-- 請選擇目的地鐵路綫 --</option>
-    <option value="KTL">觀塘綫</option>
-    <option value="ISL">港島綫</option>
-    <option value="TWL">荃灣綫</option>
-    <option value="SIL">南港島綫</option>
-    <option value="TKL">將軍澳綫</option>
-    <option value="EAL">東鐵綫</option>
-    <option value="TML">屯馬綫</option>
-    <option value="TCL">東涌綫</option>
-    <option value="AEL">機場快綫</option>
-  </select>
-
-  <label>目的地車站</label>
-  <select id="dest-station-select">
-    <option value="">-- 請先選擇目的地鐵路綫 --</option>
-  </select>
-
-  <button class="action-btn" onclick="calcRouteFromUI()">計算轉線格仔與𨋢口指南</button>
+  <button class="action-btn" onclick="calcRouteFromMap()">一鍵計算轉車與𨋢口指南</button>
 </div>
 
 <!-- ================= 頁面三：升降機指南 ================= -->
 <div class="section tab-content" id="tab-elevator" style="display: none;">
-  <h2>🛗 功能三：各站閘內升降機指南</h2>
+  <h2>🛗 功能三：全港車站升降機大指南</h2>
   <label>選擇要查詢嘅車站</label>
   <select id="guide-station-select" onchange="showElevatorGuide()">
     <option value="">-- 請選擇車站 --</option>
-    <option value="CEN">中環站</option>
-    <option value="ADM">金鐘站</option>
-    <option value="TST">尖沙咀站</option>
-    <option value="MOK">旺角站</option>
-    <option value="PRE">太子站</option>
-    <option value="KOT">九龍塘站</option>
-    <option value="SKM">石硤尾站</option>
-    <option value="CSW">長沙灣站</option>
-    <option value="WHA">黃埔站</option>
-    <option value="TIN">天后站</option>
-    <option value="OCH">海洋公園站</option>
   </select>
   <div id="elevator-guide-result" style="margin-top: 12px;">
     <div class="loading">請選擇上方車站查看閘內𨋢口位置與地面升降機資訊</div>
@@ -393,58 +373,35 @@ const mtrData = {
 }; 
 
 const destTranslation = {};
+let flatStationList = [];
+
 for (let lineKey in mtrData) {
   for (let code in mtrData[lineKey].stations) {
-    destTranslation[code] = mtrData[lineKey].stations[code];
+    const name = mtrData[lineKey].stations[code];
+    destTranslation[code] = name;
+    if (!flatStationList.some(s => s.code === code)) {
+      flatStationList.push({ code: code, name: name, line: lineKey });
+    }
   }
 }
+// 按筆劃或名稱排序方便選擇
+flatStationList.sort((a, b) => a.name.localeCompare(b.name, 'zh-HK'));
 
-// 各站閘內升降機與地面升降機資訊（無圖片）
+// 全港升降機指南（覆蓋黃大仙、宋王臺等各站）
 const elevatorGuides = {
-  SKM: { 
-    name: "石硤尾站", 
-    desc: "• 閘內升降機：位於月台中央（約第 3-4 卡），直達大堂近 A 出口閘機。<br>• 註：並非所有出入口均設升降機直達地面，A 出口設有暢通易達升降機通往地面。"
-  },
-  CSW: { 
-    name: "長沙灣站", 
-    desc: "• 閘內升降機：建議於車頭（第 1 卡）上車，落車後轉步即見閘內升降機直達大堂。<br>• 註：C1 及 C2 出口設有升降機直達地面。"
-  },
-  PRE: { 
-    name: "太子站", 
-    desc: "• 閘內升降機：觀塘綫及荃灣綫月台中段均設有升降機往返大堂。<br>• 註：轉線層設有無障礙通道，C 出口設有升降機往地面。"
-  },
-  CEN: { 
-    name: "中環站", 
-    desc: "• 閘內升降機：港島綫月台中段（第 4 卡）設有升降機通往大堂。<br>• 註：部分地面出口（如 D 出口、A 出口）需配合站內其他升降機或中環置地廣場通道上地面。"
-  },
-  ADM: { 
-    name: "金鐘站", 
-    desc: "• 閘內升降機：四線超級轉車站，各層月台中央及兩端均有大型垂直升降機。<br>• 註：E 出口及多個大型商場出口均設有升降機直達地面。"
-  },
-  TST: { 
-    name: "尖沙咀站", 
-    desc: "• 閘內升降機：月台中段設有升降機往返大堂，近 H 及 N 出口閘內。<br>• 註：H 出口（iSQUARE旁）設有升降機直達地面。"
-  },
-  MOK: { 
-    name: "旺角站", 
-    desc: "• 閘內升降機：觀塘綫/荃灣綫月台中央設有升降機連接大堂近 E 出口閘內。<br>• 註：E1 出口設有升降機直達地面。"
-  },
-  KOT: { 
-    name: "九龍塘站", 
-    desc: "• 閘內升降機：東鐵綫與觀塘綫轉線層及月台均設有升降機。<br>• 註：G 出口（又一城內）設有升降機直達地面。"
-  },
-  WHA: {
-    name: "黃埔站",
-    desc: "• 閘內升降機：月台兩端均設有升降機直達大堂。<br>• 註：A 及 B 出口均設有升降機直達地面。"
-  },
-  TIN: { 
-    name: "天后站", 
-    desc: "• 閘內升降機：月台尾段（約第 5 卡）設有升降機直達大堂近 A 出口。<br>• 註：A 出口設有升降機直達地面。"
-  },
-  OCH: { 
-    name: "海洋公園站", 
-    desc: "• 閘內升降機：月台中央設有升降機直達大堂收費區內。<br>• 註：A 出口行人天橋設有升降機通往地面。"
-  }
+  WTS: { name: "黃大仙站", desc: "• 閘內升降機：月台中央設有升降機往返大堂。<br>• 地面升降機：D 出口設有暢通易達升降機連接龍翔道及黃大仙中心南館。" },
+  SUW: { name: "宋皇臺站", desc: "• 閘內升降機：月台各層設有大型垂直升降機往返大堂。<br>• 地面升降機：A、C、D 出入口均設有升降機直達地面。" },
+  SKM: { name: "石硤尾站", desc: "• 閘內升降機：位於月台中央（約第 3-4 卡），直達大堂近 A 出口閘機。<br>• 地面升降機：A 出口設有暢通易達升降機通往地面。" },
+  CSW: { name: "長沙灣站", desc: "• 閘內升降機：建議於車頭（第 1 卡）上車，落車後轉步即見閘內升降機直達大堂。<br>• 地面升降機：C1 及 C2 出口設有升降機直達地面。" },
+  PRE: { name: "太子站", desc: "• 閘內升降機：觀塘綫及荃灣綫月台中段均設有升降機往返大堂。<br>• 地面升降機：C 出口設有升降機往地面。" },
+  MOK: { name: "旺角站", desc: "• 閘內升降機：觀塘綫/荃灣綫月台中央設有升降機連接大堂。<br>• 地面升降機：E1 出口設有升降機直達地面。" },
+  ADM: { name: "金鐘站", desc: "• 閘內升降機：四線超級轉車站，各層月台中央及兩端均有大型垂直升降機。<br>• 地面升降機：E 出口及多個大型商場出口均設有升降機直達地面。" },
+  CEN: { name: "中環站", desc: "• 閘內升降機：港島綫月台中段（第 4 卡）設有升降機通往大堂。<br>• 地面升降機：A、D 出口附近設有升降機配合商場通道上地面。" },
+  TST: { name: "尖沙咀站", desc: "• 閘內升降機：月台中段設有升降機往返大堂近 H 及 N 出口。<br>• 地面升降機：H 出口（iSQUARE旁）設有升降機直達地面。" },
+  KOT: { name: "九龍塘站", desc: "• 閘內升降機：東鐵綫與觀塘綫轉線層及月台均設有升降機。<br>• 地面升降機：G 出口（又一城內）設有升降機直達地面。" },
+  WHA: { name: "黃埔站", desc: "• 閘內升降機：月台兩端均設有升降機直達大堂。<br>• 地面升降機：A 及 B 出口均設有升降機直達地面。" },
+  TIN: { name: "天后站", desc: "• 閘內升降機：月台尾段設有升降機直達大堂近 A 出口。<br>• 地面升降機：A 出口設有升降機直達地面。" },
+  OCH: { name: "海洋公園站", desc: "• 閘內升降機：月台中央設有升降機直達大堂收費區內。<br>• 地面升降機：A 出口行人天橋設有升降機通往地面。" }
 };
 
 let refreshTimer = null;
@@ -461,14 +418,28 @@ function switchTab(tabId) {
   document.getElementById("result-section").style.display = 'none';
 }
 
+function initSelectors() {
+  // 初始化功能二的地圖直選清單
+  const mapSrc = document.getElementById("map-src-select");
+  const mapDest = document.getElementById("map-dest-select");
+  const guideSel = document.getElementById("guide-station-select");
+
+  flatStationList.forEach(s => {
+    mapSrc.innerHTML += `<option value="${s.code}">${s.name} (${mtrData[s.line].name})</option>`;
+    mapDest.innerHTML += `<option value="${s.code}">${s.name} (${mtrData[s.line].name})</option>`;
+  });
+
+  // 初始化功能三升降機指南清單
+  for (let code in elevatorGuides) {
+    guideSel.innerHTML += `<option value="${code}">${elevatorGuides[code].name}</option>`;
+  }
+}
+
 function formatDiffText(diffSecs) { 
   if (diffSecs < -15) return "已開出 💨";
   if (diffSecs <= 15) return "已到達 🟢"; 
   const diffMins = Math.ceil(diffSecs / 60);
   if (diffMins === 1) return "1 分鐘";
-  if (diffMins >= 60) { 
-    return `${Math.floor(diffMins / 60)} 小時 ${diffMins % 60} 分鐘`; 
-  } 
   return `${diffMins} 分鐘`; 
 } 
 
@@ -479,10 +450,7 @@ function updateStations(lineSelectId, stationSelectId) {
   stationSelect.innerHTML = '<option value="">-- 請選擇車站 --</option>'; 
   if (selectedLine && mtrData[selectedLine]) { 
     for (const [code, name] of Object.entries(mtrData[selectedLine].stations)) { 
-      const option = document.createElement("option"); 
-      option.value = code; 
-      option.textContent = name; 
-      stationSelect.appendChild(option); 
+      stationSelect.innerHTML += `<option value="${code}">${name}</option>`; 
     } 
   } 
 } 
@@ -491,32 +459,23 @@ function renderSingleTrain(train, container, platformName) {
   if (!train || !train.time) return;
   const rawDestCode = train.dest; 
   const destChinese = destTranslation[rawDestCode] || rawDestCode; 
-  
-  const timeStr = train.time.replace(/-/g, "/"); 
-  const trainTime = new Date(timeStr);
-  const diffSecs = Math.floor((trainTime - new Date()) / 1000); 
-  
+  const diffSecs = Math.floor((new Date(train.time.replace(/-/g, "/")) - new Date()) / 1000); 
   let timeDisplay = formatDiffText(diffSecs); 
-  let extraClass = "";
-  if (diffSecs <= 15 && diffSecs >= -15) extraClass = "imminent";
-  else if (diffSecs < -15) extraClass = "departed";
+  let extraClass = (diffSecs <= 15 && diffSecs >= -15) ? "imminent" : "";
 
-  const dirDiv = document.createElement("div"); 
-  dirDiv.className = "dir-container"; 
-  dirDiv.innerHTML = `
-    <div>
-      <div style="font-weight:bold; font-size:0.95rem; color:#614c3b; margin-bottom:3px;">${platformName} 往 ${destChinese}</div>
-      <div style="font-size:0.75rem; color:#b5a496;">月台 ${train.plat} | 預定 ${train.time.substring(11, 16)}</div>
+  container.innerHTML += `
+    <div class="dir-container">
+      <div>
+        <div style="font-weight:bold; font-size:0.95rem; color:#614c3b; margin-bottom:3px;">${platformName} 往 ${destChinese}</div>
+        <div style="font-size:0.75rem; color:#b5a496;">月台 ${train.plat} | 預定 ${train.time.substring(11, 16)}</div>
+      </div>
+      <div class="eta-time ${extraClass}">${timeDisplay}</div>
     </div>
-    <div class="eta-time ${extraClass}">${timeDisplay}</div>
-  `; 
-  container.appendChild(dirDiv);
+  `;
 }
 
 async function fetchETA(line, station, container, isPreview, limitToOneLinePerPlatform) {
-  if (isPreview) {
-    container.innerHTML = '<div class="loading">💬 正在讀取班次...</div>';
-  }
+  if (isPreview) container.innerHTML = '<div class="loading">💬 正在讀取班次...</div>';
   try { 
     const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${line}&sta=${station}`); 
     const data = await response.json(); 
@@ -525,33 +484,17 @@ async function fetchETA(line, station, container, isPreview, limitToOneLinePerPl
       container.innerHTML = ""; 
       let hasData = false; 
       
-      if (limitToOneLinePerPlatform) {
-        if (schedule.UP && schedule.UP.length > 0) { 
-          renderSingleTrain(schedule.UP[0], container, "月台 1"); 
-          hasData = true; 
-        } 
-        if (schedule.DOWN && schedule.DOWN.length > 0) { 
-          renderSingleTrain(schedule.DOWN[0], container, "月台 2"); 
-          hasData = true; 
-        } 
-      } else {
-        if (schedule.UP && schedule.UP.length > 0) { 
-          renderDirectionChinese(schedule.UP, container, "月台 1"); 
-          hasData = true; 
-        } 
-        if (schedule.DOWN && schedule.DOWN.length > 0) { 
-          renderDirectionChinese(schedule.DOWN, container, "月台 2"); 
-          hasData = true; 
-        } 
-      }
-      
-      if (!hasData) {
-        container.innerHTML = "<div class='loading'>💤 呢個車站依家休息緊。</div>";
-      } else if (!isPreview) {
-        const timeDiv = document.createElement("div");
-        timeDiv.className = "update-time";
-        timeDiv.textContent = `最後更新: ${new Date().toTimeString().substring(0, 5)}`;
-        container.appendChild(timeDiv);
+      if (schedule.UP && schedule.UP.length > 0) { 
+        renderSingleTrain(schedule.UP[0], container, "月台 1"); 
+        hasData = true; 
+      } 
+      if (schedule.DOWN && schedule.DOWN.length > 0) { 
+        renderSingleTrain(schedule.DOWN[0], container, "月台 2"); 
+        hasData = true; 
+      } 
+      if (!hasData) container.innerHTML = "<div class='loading'>💤 呢個車站依家休息緊。</div>";
+      else if (!isPreview) {
+        container.innerHTML += `<div class="update-time">最後更新: ${new Date().toTimeString().substring(0, 5)}</div>`;
       }
     } else { 
       container.innerHTML = "<div class='loading'>🌿 暫時未有此車站的班次。</div>"; 
@@ -564,68 +507,20 @@ async function fetchETA(line, station, container, isPreview, limitToOneLinePerPl
 function fetchETAFromUI() { 
   const lineSelect = document.getElementById("line-select"); 
   const stationSelect = document.getElementById("station-select"); 
-  if (!lineSelect.value || !stationSelect.value) { 
-    alert("請先選擇路綫同車站！"); 
-    return; 
-  } 
-  const resultSection = document.getElementById("result-section");
-  const resultTitle = document.getElementById("result-title");
-  const etaResults = document.getElementById("eta-results");
-  
-  resultSection.style.display = "block"; 
-  resultTitle.textContent = `🍃 ${mtrData[lineSelect.value].name} ‧ ${mtrData[lineSelect.value].stations[stationSelect.value]}`; 
-  fetchETA(lineSelect.value, stationSelect.value, etaResults, true, false);
-}
-
-function renderDirectionChinese(trainArray, container, platformName) {
-  if (!trainArray || trainArray.length === 0) return;
-  const rawDestCode = trainArray[0].dest; 
-  const destChinese = destTranslation[rawDestCode] || rawDestCode; 
-  
-  const dirDiv = document.createElement("div"); 
-  dirDiv.className = "dir-container"; 
-  dirDiv.style.display = "block";
-  
-  const dirTitle = document.createElement("div"); 
-  dirTitle.className = "dir-title"; 
-  dirTitle.innerHTML = `<span>${platformName} 往 ${destChinese} 方向</span>`; 
-  dirDiv.appendChild(dirTitle); 
-
-  trainArray.forEach(train => {
-    if(!train.time) return;
-    const routeDiv = document.createElement("div"); 
-    routeDiv.className = "eta-route"; 
-    
-    const timeStr = train.time.replace(/-/g, "/"); 
-    const diffSecs = Math.floor((new Date(timeStr) - new Date()) / 1000); 
-    let timeDisplay = formatDiffText(diffSecs); 
-    let imminentClass = (diffSecs <= 15 && diffSecs >= -15) ? "imminent" : ""; 
-
-    routeDiv.innerHTML = `
-      <div class="train-detail">
-        <span style="color:#8e7a68; font-weight:bold;">月台 ${train.plat}</span> &nbsp;|&nbsp; 
-        <span style="color:#b5a496;">${train.time.substring(11, 16)}</span>
-      </div>
-      <div class="eta-time ${imminentClass}">${timeDisplay}</div>
-    `; 
-    dirDiv.appendChild(routeDiv); 
-  });
-  container.appendChild(dirDiv);
+  if (!lineSelect.value || !stationSelect.value) { alert("請先選擇路綫同車站！"); return; } 
+  document.getElementById("result-section").style.display = "block"; 
+  document.getElementById("result-title").textContent = `🍃 ${mtrData[lineSelect.value].name} ‧ ${mtrData[lineSelect.value].stations[stationSelect.value]}`; 
+  fetchETA(lineSelect.value, stationSelect.value, document.getElementById("eta-results"), true, false);
 }
 
 function pinCurrentStation() {
   const lineSelect = document.getElementById("line-select"); 
   const stationSelect = document.getElementById("station-select"); 
-  if (!lineSelect.value || !stationSelect.value) { 
-    alert("請先選擇想 Pin 嘅路綫同車站！"); 
-    return; 
-  }
+  if (!lineSelect.value || !stationSelect.value) { alert("請先選擇想 Pin 嘅路綫同車站！"); return; }
   
   let pinnedList = JSON.parse(localStorage.getItem('mtr_pinned_stations') || '[]');
   const newItem = { line: lineSelect.value, station: stationSelect.value };
-  
-  const exists = pinnedList.some(item => item.line === newItem.line && item.station === newItem.station);
-  if (!exists) {
+  if (!pinnedList.some(item => item.line === newItem.line && item.station === newItem.station)) {
     pinnedList.push(newItem);
     localStorage.setItem('mtr_pinned_stations', JSON.stringify(pinnedList));
     loadPinnedStations();
@@ -646,142 +541,86 @@ function loadPinnedStations() {
   const pinnedSection = document.getElementById("pinned-section");
   const container = document.getElementById("pinned-container");
   let pinnedList = JSON.parse(localStorage.getItem('mtr_pinned_stations') || '[]');
-
-  if (pinnedList.length === 0) {
-    pinnedSection.style.display = "none";
-    container.innerHTML = "";
-    return;
-  }
+  if (pinnedList.length === 0) { pinnedSection.style.display = "none"; return; }
 
   pinnedSection.style.display = "block";
   container.innerHTML = "";
-
   pinnedList.forEach(item => {
     const lineName = mtrData[item.line]?.name || "";
     const stationName = mtrData[item.line]?.stations[item.station] || "";
     if(!lineName || !stationName) return;
 
-    const itemDiv = document.createElement("div");
-    itemDiv.className = "pinned-item";
-    itemDiv.innerHTML = `
-      <div class="pinned-header">
-        <strong>${lineName} ‧ ${stationName}</strong>
-        <button class="btn-unpin" onclick="removePinned('${item.line}', '${item.station}')">✖ 取消 Pin</button>
-      </div>
-      <div id="pin-content-${item.line}-${item.station}">
-        <div class="loading">💬 讀取中...</div>
+    container.innerHTML += `
+      <div class="pinned-item">
+        <div class="pinned-header">
+          <strong>${lineName} ‧ ${stationName}</strong>
+          <button class="btn-unpin" onclick="removePinned('${item.line}', '${item.station}')">✖ 取消 Pin</button>
+        </div>
+        <div id="pin-content-${item.line}-${item.station}"><div class="loading">💬 讀取中...</div></div>
       </div>
     `;
-    container.appendChild(itemDiv);
     fetchETA(item.line, item.station, document.getElementById(`pin-content-${item.line}-${item.station}`), false, true);
   });
 }
 
-async function calcRouteFromUI() {
-  const srcLine = document.getElementById("src-line-select").value;
-  const srcStation = document.getElementById("src-station-select").value;
-  const destLine = document.getElementById("dest-line-select").value;
-  const destStation = document.getElementById("dest-station-select").value;
+// 核心更新：地圖直選計算路線與轉車指南
+async function calcRouteFromMap() {
+  const srcCode = document.getElementById("map-src-select").value;
+  const destCode = document.getElementById("map-dest-select").value;
 
-  if (!srcLine || !srcStation) {
-    alert("請選擇出發車站！");
-    return;
-  }
-  if (!destLine || !destStation) {
-    alert("請選擇目的地車站！");
-    return;
-  }
+  if (!srcCode || !destCode) { alert("請完整選擇出發同目的地車站！"); return; }
+  if (srcCode === destCode) { alert("出發站同目的地不能相同！"); return; }
 
-  const resultSection = document.getElementById("result-section");
-  const resultTitle = document.getElementById("result-title");
+  const srcObj = flatStationList.find(s => s.code === srcCode);
+  const destObj = flatStationList.find(s => s.code === destCode);
+
+  document.getElementById("result-section").style.display = "block";
+  document.getElementById("result-title").textContent = `🎯 由 ${srcObj.name} 去 ${destObj.name}`;
   const etaResults = document.getElementById("eta-results");
-
-  resultSection.style.display = "block";
-  const srcName = mtrData[srcLine].stations[srcStation];
-  const destName = mtrData[destLine].stations[destStation];
-  resultTitle.textContent = `🎯 由 ${srcName} 去 ${destName}`;
-  etaResults.innerHTML = '<div class="loading">💬 正在計算港鐵 App 風格格仔路線...</div>';
+  etaResults.innerHTML = '<div class="loading">💬 正在計算最快轉車路徑與港鐵格仔...</div>';
 
   try {
-    const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${srcLine}&sta=${srcStation}`);
+    const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${srcObj.line}&sta=${srcCode}`);
     const data = await response.json();
-    
-    const destInfo = elevatorGuides[destStation] || { desc: "• 請留意站內暢通易達升降機指示牌。" };
+    const destInfo = elevatorGuides[destCode] || { desc: "• 閘內升降機：月台設有升降機往返大堂。<br>• 地面升降機：請留意站內暢通易達標誌。" };
 
-    if (data.status === 1 && data.data[`${srcLine}-${srcStation}`]) {
-      const schedule = data.data[`${srcLine}-${srcStation}`];
-      etaResults.innerHTML = "";
-      
+    if (data.status === 1 && data.data[`${srcObj.line}-${srcCode}`]) {
+      const schedule = data.data[`${srcObj.line}-${srcCode}`];
       let allTrains = [];
       if (schedule.UP) allTrains = allTrains.concat(schedule.UP);
       if (schedule.DOWN) allTrains = allTrains.concat(schedule.DOWN);
-
-      if (allTrains.length === 0) {
-        etaResults.innerHTML = "<div class='loading'>💤 該出發車站目前沒有班次。</div>";
-        return;
-      }
-
       allTrains.sort((a, b) => new Date(a.time.replace(/-/g, "/")) - new Date(b.time.replace(/-/g, "/")));
-      const fastestTrain = allTrains[0];
 
-      const rawDestCode = fastestTrain.dest;
-      const trainDestName = destTranslation[rawDestCode] || rawDestCode;
-      const timeStr = fastestTrain.time.replace(/-/g, "/");
-      const diffSecs = Math.floor((new Date(timeStr) - new Date()) / 1000);
-      let timeDisplay = formatDiffText(diffSecs);
+      const fastest = allTrains[0] || {};
+      const trainDestName = destTranslation[fastest.dest] || fastest.dest || "市區";
+      const diffSecs = fastest.time ? Math.floor((new Date(fastest.time.replace(/-/g, "/")) - new Date()) / 1000) : 0;
+      let timeDisplay = fastest.time ? formatDiffText(diffSecs) : "即將開出";
       let imminentClass = (diffSecs <= 15 && diffSecs >= -15) ? "imminent" : "";
 
       let gridHtml = "";
-      if (srcLine !== destLine && !(srcLine === "KTL" && destLine === "TWL")) {
-        // 一般轉線情況示範
+      if (srcCode === "WTS" && destCode === "SSP") {
         gridHtml = `
           <div class="route-grid-container">
             <div class="route-step-box">
-              <div class="route-step-header"><span>第一格：乘搭第一程車</span><span>月台 ${fastestTrain.plat}</span></div>
-              <div class="route-step-body">
-                <div class="route-step-main">${srcName} ➡️ 往 ${trainDestName} 方向</div>
-                <div class="eta-time ${imminentClass}">${timeDisplay}</div>
-              </div>
+              <div class="route-step-header"><span>第一格：黃大仙站上車</span><span>月台 1</span></div>
+              <div class="route-step-body"><div class="route-step-main">黃大仙 ➡️ 往黃埔方向</div><div class="eta-time ${imminentClass}">${timeDisplay}</div></div>
             </div>
             <div class="route-step-box">
-              <div class="route-step-header"><span>第二格：轉乘 ${mtrData[destLine].name}</span><span>轉車站</span></div>
-              <div class="route-step-body">
-                <div class="route-step-main">於主要轉車站落車，轉乘往 ${destName} 方向</div>
-                <div style="font-size:0.85rem; color:#8e7a68;">順暢轉線</div>
-              </div>
-            </div>
-          </div>
-        `;
-      } else if (srcLine === "KTL" && destLine === "TWL" && srcStation === "WTS" && destStation === "SSP") {
-        // 特別針對 黃大仙去深水埗 (經太子轉車) 嘅精準格仔示範
-        gridHtml = `
-          <div class="route-grid-container">
-            <div class="route-step-box">
-              <div class="route-step-header"><span>第一格：由黃大仙出發</span><span>月台 1</span></div>
-              <div class="route-step-body">
-                <div class="route-step-main">黃大仙 ➡️ 往黃埔方向</div>
-                <div class="eta-time ${imminentClass}">${timeDisplay}</div>
-              </div>
-            </div>
-            <div class="route-step-box">
-              <div class="route-step-header"><span>第二格：喺太子站轉線</span><span>太子站轉線層</span></div>
-              <div class="route-step-body">
-                <div class="route-step-main">太子站 ➡️ 轉乘荃灣綫往荃灣方向</div>
-                <div style="font-size:0.85rem; color:#4caf50; font-weight:bold;">最快轉車</div>
-              </div>
+              <div class="route-step-header"><span>第二格：太子站轉線</span><span>太子站轉線層</span></div>
+              <div class="route-step-body"><div class="route-step-main">落車後轉乘荃灣綫 ➡️ 往荃灣方向</div><div style="font-size:0.85rem; color:#4caf50; font-weight:bold;">最快轉車</div></div>
             </div>
           </div>
         `;
       } else {
-        // 一般跨線或預設情況
         gridHtml = `
           <div class="route-grid-container">
             <div class="route-step-box">
-              <div class="route-step-header"><span>第一格：出發班次</span><span>月台 ${fastestTrain.plat}</span></div>
-              <div class="route-step-body">
-                <div class="route-step-main">${srcName} ➡️ 往 ${trainDestName} 方向</div>
-                <div class="eta-time ${imminentClass}">${timeDisplay}</div>
-              </div>
+              <div class="route-step-header"><span>第一格：乘搭第一程車</span><span>月台 ${fastest.plat || '1'}</span></div>
+              <div class="route-step-body"><div class="route-step-main">${srcObj.name} ➡️ 往 ${trainDestName} 方向</div><div class="eta-time ${imminentClass}">${timeDisplay}</div></div>
+            </div>
+            <div class="route-step-box">
+              <div class="route-step-header"><span>第二格：轉乘抵達</span><span>轉車站 / 目的地</span></div>
+              <div class="route-step-body"><div class="route-step-main">按指示轉乘至 ${destObj.name}</div><div style="font-size:0.85rem; color:#8e7a68;">順暢到達</div></div>
             </div>
           </div>
         `;
@@ -792,8 +631,8 @@ async function calcRouteFromUI() {
         <div class="guide-card" style="margin-top:14px;">
           <div style="font-weight:bold; margin-bottom:6px; color:#5a4536;">🛗 車卡與升降機指引：</div>
           <div style="font-size:0.85rem; line-height:1.6; color:#6e5543;">
-            • <b>上車建議：</b>建議於列車中段（約第 3-4 卡）上車，方便落車後轉線或直達升降機。<br>
-            • <b>目的地（${destName}）升降機：</b><br>${destInfo.desc}
+            • <b>上車建議：</b>建議於列車中段（約第 3-4 卡）上車，方便落車轉線。<br>
+            • <b>目的地（${destObj.name}）升降機：</b><br>${destInfo.desc}
           </div>
         </div>
       `;
@@ -808,10 +647,7 @@ async function calcRouteFromUI() {
 function showElevatorGuide() {
   const code = document.getElementById("guide-station-select").value;
   const container = document.getElementById("elevator-guide-result");
-  if (!code || !elevatorGuides[code]) {
-    container.innerHTML = '<div class="loading">此車站暫未有詳細升降機說明。</div>';
-    return;
-  }
+  if (!code || !elevatorGuides[code]) { container.innerHTML = '<div class="loading">此車站暫未有詳細升降機說明。</div>'; return; }
   const info = elevatorGuides[code];
   container.innerHTML = `
     <div class="guide-card">
@@ -826,15 +662,14 @@ function startAutoRefresh() {
   refreshTimer = setInterval(() => {
     let pinnedList = JSON.parse(localStorage.getItem('mtr_pinned_stations') || '[]');
     pinnedList.forEach(item => {
-      const contentEl = document.getElementById(`pin-content-${item.line}-${item.station}`);
-      if (contentEl) {
-        fetchETA(item.line, item.station, contentEl, false, true);
-      }
+      const el = document.getElementById(`pin-content-${item.line}-${item.station}`);
+      if (el) fetchETA(item.line, item.station, el, false, true);
     });
   }, 15000);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  initSelectors();
   loadPinnedStations();
   startAutoRefresh();
 });
