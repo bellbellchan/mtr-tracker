@@ -218,6 +218,7 @@
             padding: 2px 8px;
             border-radius: 6px;
             font-weight: bold;
+            font-size: 13px;
         }
 
         /* 取消 Pin 按鈕 */
@@ -354,26 +355,32 @@
             return destMap[destCode] || destCode;
         }
 
-        // 處理港鐵回傳時間的函數（強制轉換或計算剩餘分鐘）
-        function formatTrainTime(rawTime) {
+        // 同時顯示「幾多分鐘後」同「hh:mm」時間
+        function formatArrivalTime(rawTime) {
             if (rawTime === undefined || rawTime === null) return "暫無資料";
 
-            // 如果本身已經係數字或者可以轉化為數字（代表剩餘分鐘）
+            let arrivalDate;
             let num = Number(rawTime);
+
             if (!isNaN(num)) {
                 if (num <= 0) return "已到達";
-                return `${num} 分鐘後到達`;
-            }
+                arrivalDate = new Date(new Date().getTime() + num * 60000);
+                let hours = String(arrivalDate.getHours()).padStart(2, '0');
+                let minutes = String(arrivalDate.getMinutes()).padStart(2, '0');
+                return `${num} 分鐘後 (${hours}:${minutes})`;
+            } else {
+                arrivalDate = new Date(rawTime.replace(/-/g, "/"));
+                let now = new Date();
+                let diffMs = arrivalDate - now;
+                let diffMins = Math.round(diffMs / 60000);
 
-            // 如果係日期時間字串（例如 "2026-08-09 20:42:00"）
-            let trainDate = new Date(rawTime.replace(/-/g, "/")); // 兼容 safari
-            let now = new Date();
-            let diffMinutes = Math.round((trainDate - now) / 60000);
-
-            if (isNaN(diffMinutes) || diffMinutes <= 0) {
-                return "已到達";
+                if (isNaN(arrivalDate.getTime()) || diffMins <= 0) {
+                    return "已到達";
+                }
+                let hours = String(arrivalDate.getHours()).padStart(2, '0');
+                let minutes = String(arrivalDate.getMinutes()).padStart(2, '0');
+                return `${diffMins} 分鐘後 (${hours}:${minutes})`;
             }
-            return `${diffMinutes} 分鐘後到達`;
         }
 
         async function fetchMTRData() {
@@ -404,11 +411,11 @@
                             if (stationData[dir] && stationData[dir].length > 0) {
                                 const platform = stationData[dir];
                                 const destName = translateDestination(platform[0].dest);
-                                const timeText = formatTrainTime(platform[0].time);
+                                const timeText = formatArrivalTime(platform[0].time);
 
                                 htmlContent += `
                                     <div class="train-row">
-                                        <span><strong>往 ${destName}</strong></span>
+                                        <span><strong>往 ${destName} 方向</strong></span>
                                         <span class="time-badge">${timeText}</span>
                                     </div>
                                 `;
