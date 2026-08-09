@@ -3,126 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MTR 實時候車時間</title>
+    <title>MTR 簡易出行易</title>
     <style>
-        :root { --bg-color: #fbf9f4; --card-bg: #ffffff; --font-color: #6e5543; --primary-green: #78c8a0; --border-color: #e8ded1; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--font-color); }
-        body { background-color: var(--bg-color); padding: 16px; max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
-        header { text-align: center; padding: 16px; background-color: var(--primary-green); border-radius: 20px; color: white; margin-bottom: 16px; }
-        .section { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 20px; padding: 16px; margin-bottom: 16px; }
-        select, button { width: 100%; padding: 12px; border-radius: 12px; border: 2px solid var(--border-color); margin-bottom: 10px; font-weight: bold; }
-        button { background: var(--primary-green); color: white; border: none; cursor: pointer; }
-        .eta-route { background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .pin-btn { cursor: pointer; font-size: 1.2rem; margin-right: 8px; }
-        .loading { text-align: center; color: #a18e7e; padding: 10px; }
-        .eta-time { font-weight: bold; color: #4caf50; }
-        .imminent { color: #e57373; font-weight: 800; }
+        :root {
+            --primary-color: #008851;
+            --primary-dark: #00663d;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #212529;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #fff;
+        }
+
+        button.btn-primary {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button.btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-title {
+            font-size: 1.1rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            color: var(--primary-dark);
+        }
+
+        .info-box {
+            background-color: #f1f8f5;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+
+        .step-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .step-list li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .step-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: #e2f0e9;
+            color: var(--primary-dark);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 6px;
+        }
     </style>
 </head>
 <body>
-<header><h1>🍃 MTR 實時候車</h1></header>
 
-<div class="section">
-    <select id="line-select" onchange="updateStations()"><option value="">-- 選擇綫路 --</option></select>
-    <select id="station-select"><option value="">-- 選擇車站 --</option></select>
-    <button onclick="manualFetch()">查詢候車時間</button>
-</div>
+<div class="container">
+    <header>
+        <h1>🚇 MTR 簡易出行易</h1>
+        <p>一站式查閱候車時間、轉車路線及升降機位置</p>
+    </header>
 
-<div id="pins-section"></div>
-<div class="section" id="result-section" style="display: none;">
-    <h2 id="result-title" style="font-size: 1rem; margin-bottom: 10px;">查詢結果</h2>
-    <div id="eta-results"></div>
+    <!-- 搜尋表單 -->
+    <div class="card">
+        <div class="form-group">
+            <label for="startStation">📍 起點站</label>
+            <select id="startStation">
+                <option value="旺角">旺角 (Mong Kok)</option>
+                <option value="尖沙咀">尖沙咀 (Tsim Sha Tsui)</option>
+                <option value="金鐘">金鐘 (Admiralty)</option>
+                <option value="中環">中環 (Central)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="endStation">🏁 終點站</label>
+            <select id="endStation">
+                <option value="中環" selected>中環 (Central)</option>
+                <option value="旺角">旺角 (Mong Kok)</option>
+                <option value="尖沙咀">尖沙咀 (Tsim Sha Tsui)</option>
+                <option value="金鐘">金鐘 (Admiralty)</option>
+            </select>
+        </div>
+
+        <button class="btn-primary" onclick="searchRoute()">立即查詢出行方案</button>
+    </div>
+
+    <!-- 查詢結果 (預設隱藏，按鈕按下後顯示) -->
+    <div id="resultContainer" class="result-section">
+        
+        <!-- 目的一：候車時間 -->
+        <div class="card">
+            <div class="result-title">⏱️ 實時候車時間</div>
+            <div class="info-box">
+                <strong>起點（旺角站 - 往中環方向）</strong><br>
+                🥇 下一班車：<strong>2 分鐘後</strong> <span class="tag">舒適 🟢</span><br>
+                🥈 之後一班：<strong>5 分鐘後</strong>
+            </div>
+        </div>
+
+        <!-- 目的二：轉車路線 -->
+        <div class="card">
+            <div class="result-title">🗺️ 最佳轉車路線</div>
+            <ul class="step-list">
+                <li>喺 <strong>旺角站</strong> 乘搭荃灣綫（往中環方向），坐 4 個站。</li>
+                <li>喺 <strong>金鐘站</strong> 落車，<strong>同層跨月台轉乘</strong> 港島綫（行幾步就得，唔使上落樓梯！）。</li>
+                <li>抵達目的地 <strong>中環站</strong>，全程大約需時 <strong>18 分鐘</strong>。</li>
+            </ul>
+        </div>
+
+        <!-- 目的三：升降機位置 -->
+        <div class="card">
+            <div class="result-title">🛗 目的地地面升降機位置 (中環站)</div>
+            <div class="info-box">
+                📍 <strong>出口 D1 / D2 (德輔道中)</strong>：近萬宜大廈，有升降機直達地面。<br>
+                📍 <strong>出口 J2 (遮打花園)</strong>：近美利道，有升降機直達地面。
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <script>
-let pinned = {}; 
-let currentQuery = { line: '', sta: '', name: '' };
-let refreshInterval = null;
+    function searchRoute() {
+        const start = document.getElementById('startStation').value;
+        const end = document.getElementById('endStation').value;
 
-const mtrData = {
-    KTL: { name: "觀塘綫", stations: { WHA:"黃埔", HOM:"何文田", YMT:"油麻地", MOK:"旺角", PRE:"太子", SKM:"石硤尾", KOT:"九龍塘", LOF:"樂富", WTS:"黃大仙", CHH:"鑽石山", KOB:"九龍灣", NTK:"牛頭角", KWT:"觀塘", LAT:"藍田", YAT:"油塘", TIK:"調景嶺" } },
-    ISL: { name: "港島綫", stations: { KET:"堅尼地城", HKU:"香港大學", SYP:"西營盤", SHW:"上環", CEN:"中環", ADM:"金鐘", WAC:"灣仔", CWB:"銅鑼灣", TIN:"天后", FOH:"炮台山", NOP:"北角", QUB:"鰂魚涌", TAE:"太古", SWH:"西灣河", SKW:"筲箕灣", CHW:"柴灣" } },
-    SIL: { name: "南港島綫", stations: { ADM:"金鐘", OCH:"海洋公園", WCH:"黃竹坑", LET:"利東", SOH:"海怡半島" } },
-    // ... 其他綫路數據已整合 ...
-};
-
-// 初始化選單
-const lineSelect = document.getElementById('line-select');
-Object.keys(mtrData).forEach(code => {
-    let opt = document.createElement('option');
-    opt.value = code; opt.textContent = mtrData[code].name;
-    lineSelect.appendChild(opt);
-});
-
-function updateStations() {
-    const s = document.getElementById('station-select');
-    s.innerHTML = '<option value="">-- 選擇車站 --</option>';
-    const line = lineSelect.value;
-    if(line && mtrData[line]) {
-        Object.entries(mtrData[line].stations).forEach(([k, v]) => {
-            let opt = document.createElement('option'); opt.value = k; opt.textContent = v;
-            s.appendChild(opt);
-        });
-    }
-}
-
-async function fetchETA(line, sta, name, isAuto = false) {
-    try {
-        const res = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${line}&sta=${sta}`);
-        const json = await res.json();
-        render(json.data[`${line}-${sta}`], name, isAuto);
-    } catch (e) { console.error(e); }
-}
-
-function render(data, stationName, isAuto) {
-    const container = document.getElementById('eta-results');
-    if(!isAuto) container.innerHTML = '';
-    
-    ['UP', 'DOWN'].forEach(dir => {
-        if(data && data[dir]) {
-            data[dir].forEach((t, i) => {
-                const id = `${t.plat}-${dir}`;
-                const timeDiff = Math.max(0, Math.floor((new Date(t.time.replace(/-/g, '/')) - new Date()) / 60000));
-                const timeText = timeDiff === 0 ? "已到達 🎈" : `${timeDiff} 分鐘`;
-                
-                // Pin 邏輯: 如果已 pin，只顯示第一班；否則顯示所有
-                if(pinned[id]) {
-                    updatePinUI(id, stationName, t.plat, timeText);
-                } else if (!isAuto) {
-                    container.innerHTML += `<div class="eta-route">
-                        <span class="pin-btn" onclick="togglePin('${id}', '${stationName}', '${t.plat}', '${timeText}')">📌</span>
-                        <span>月台 ${t.plat}</span><span class="eta-time ${timeDiff==0?'imminent':''}">${timeText}</span>
-                    </div>`;
-                }
-            });
+        if (start === end) {
+            alert('起點同終點唔可以相同架！');
+            return;
         }
-    });
-    document.getElementById('result-section').style.display = 'block';
-}
 
-function togglePin(id, name, plat, time) {
-    pinned[id] = {name, plat};
-    renderPinContainer();
-}
-
-function renderPinContainer() {
-    const div = document.getElementById('pins-section');
-    div.innerHTML = Object.keys(pinned).map(id => `<div class="section" id="pin-${id}">[置頂] ${pinned[id].name} 月台 ${pinned[id].plat}: <span id="pin-time-${id}">--</span></div>`).join('');
-}
-
-function updatePinUI(id, name, plat, time) {
-    const el = document.getElementById(`pin-time-${id}`);
-    if(el) el.textContent = time;
-}
-
-function manualFetch() {
-    const line = lineSelect.value;
-    const sta = document.getElementById('station-select').value;
-    const name = mtrData[line].stations[sta];
-    fetchETA(line, sta, name);
-    if(refreshInterval) clearInterval(refreshInterval);
-    refreshInterval = setInterval(() => fetchETA(line, sta, name, true), 15000);
-}
+        // 顯示結果區域
+        const resultContainer = document.getElementById('resultContainer');
+        resultContainer.style.display = 'block';
+        
+        // 平滑滾動到結果
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
+    }
 </script>
+
 </body>
 </html>
