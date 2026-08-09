@@ -313,19 +313,29 @@
             opacity: 1;
         }
 
-        .map-preview-container {
-            margin-top: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
-            background-color: var(--row-bg);
+        /* 靚仔安全地圖卡片設計（保證100%唔會爆圖/出問號） */
+        .map-card-box {
+            background: linear-gradient(135deg, var(--row-bg), var(--card-bg));
+            border: 2px dashed var(--accent-color);
+            border-radius: 10px;
+            padding: 20px;
             text-align: center;
+            margin-top: 10px;
         }
-        .map-preview-container img {
-            width: 100%;
-            height: auto;
-            display: block;
-            cursor: pointer;
+        .map-card-box p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .map-link-btn {
+            display: inline-block;
+            margin-top: 10px;
+            background-color: var(--accent-color);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 13px;
         }
 
         .divider {
@@ -378,13 +388,13 @@
             <p style="text-align: center; font-size: 13px; opacity: 0.6;">💡 提示：畫面每 15 秒會在背景自動更新一次。</p>
         </div>
 
-        <!-- 頁面 2：搜尋全港車站 (下拉選單 + 打字搜尋雙軌並行) -->
+        <!-- 頁面 2：搜尋全港車站 -->
         <div id="page-search" class="page-content">
             <div class="card">
                 <h3>🔍 搜尋車站</h3>
                 
-                <!-- 方法一：傳統下拉式選單 -->
-                <label style="font-weight: bold; color: var(--accent-color);">方法一：下拉式選單查詢</label>
+                <!-- 下拉式選單查詢 -->
+                <label style="font-weight: bold; color: var(--accent-color);">下拉式選單查詢</label>
                 <label for="lineSelect">選擇鐵路綫：</label>
                 <select id="lineSelect" onchange="updateStationOptions()">
                     <option value="" disabled selected>-- 請選擇鐵路綫 --</option>
@@ -403,12 +413,12 @@
                     <option value="" disabled selected>-- 請先選擇鐵路綫 --</option>
                 </select>
 
-                <button class="action-btn" onclick="searchStationTime()">立即查詢 (下拉選單)</button>
+                <button class="action-btn" onclick="searchStationTime()">立即查詢</button>
 
                 <div class="divider"></div>
 
-                <!-- 方法二：直接打字搜尋 -->
-                <label style="font-weight: bold; color: var(--accent-color);">方法二：直接打字搜尋</label>
+                <!-- 輸入名字搜尋 -->
+                <label style="font-weight: bold; color: var(--accent-color);">輸入名字搜尋</label>
                 <label for="stationSearchInput">輸入站名過濾（例如：金鐘、中環）：</label>
                 <div class="autocomplete-container">
                     <input type="text" id="stationSearchInput" placeholder="請輸入車站名稱..." oninput="filterStations(this.value)" autocomplete="off">
@@ -419,19 +429,17 @@
                 <input type="hidden" id="selectedStationCode">
                 <input type="hidden" id="selectedStationName">
 
-                <button class="action-btn" onclick="searchStationTimeFromInput()">立即查詢 (打字搜尋)</button>
+                <button class="action-btn" onclick="searchStationTimeFromInput()">立即查詢</button>
             </div>
 
-            <!-- 參考用的港鐵路綫圖區 (正確地圖) -->
+            <!-- 安全地圖參考區（百分百穩定，唔會出問號） -->
             <div class="card">
                 <h3>🗺️ 港鐵路綫圖參考</h3>
-                <p style="font-size: 13px; opacity: 0.8; margin-bottom: 10px;">唔肯定個站位置？可以參考下面嘅路綫簡圖：</p>
-                <div class="map-preview-container">
-                    <a href="https://upload.wikimedia.org/wikipedia/commons/2/29/MTR_System_Map.png" target="_blank" title="點擊查看完整地鐵圖">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/MTR_System_Map.png/800px-MTR_System_Map.png" alt="港鐵路綫圖">
-                    </a>
+                <div class="map-card-box">
+                    <p style="font-weight: bold; font-size: 15px;">🌐 港鐵官方互動及 PDF 路綫圖</p>
+                    <p style="opacity: 0.8; font-size: 13px;">為避免網絡圖片載入失敗，您可以直接開啟官方完整路綫圖查閱全港各站位置。</p>
+                    <a href="https://www.mtr.com.hk/ch/customer/services/system_map.html" target="_blank" class="map-link-btn">🔗 開啟港鐵官方路綫圖網頁</a>
                 </div>
-                <p style="text-align: center; font-size: 12px; opacity: 0.6; margin-top: 8px;">👆 點擊圖片可放大查看高清港鐵路綫圖</p>
             </div>
 
             <!-- 搜尋結果展示區 -->
@@ -442,10 +450,9 @@
         <div id="page-transfer" class="page-content">
             <div class="card">
                 <h3>🗺️ 港鐵路綫圖與轉車指南</h3>
-                <div class="map-preview-container" style="margin-bottom: 15px;">
-                    <a href="https://upload.wikimedia.org/wikipedia/commons/2/29/MTR_System_Map.png" target="_blank">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/MTR_System_Map.png/800px-MTR_System_Map.png" alt="港鐵路綫圖">
-                    </a>
+                <div class="map-card-box">
+                    <p style="font-weight: bold; font-size: 15px;">🌐 港鐵官方轉線指引</p>
+                    <a href="https://www.mtr.com.hk/ch/customer/services/system_map.html" target="_blank" class="map-link-btn">🔗 前往港鐵官網查看轉車資訊</a>
                 </div>
             </div>
         </div>
