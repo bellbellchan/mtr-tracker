@@ -1,239 +1,198 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="zh-HK" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MTR 簡易出行易</title>
+    <title>港鐵實時資訊網 MTR Live Info</title>
     <style>
-        :root {
-            --primary-color: #008851;
-            --primary-dark: #00663d;
-            --bg-color: #f8f9fa;
+        /* 🎨 主題顏色變數設定 (6款風格) */
+        :root[data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #ff9800;
+            --border-color: #333333;
+            --header-bg: #1f1f1f;
+        }
+        :root[data-theme="light"] {
+            --bg-color: #f4f4f9;
             --card-bg: #ffffff;
-            --text-main: #212529;
-            --text-muted: #6c757d;
-            --border-color: #dee2e6;
+            --text-color: #333333;
+            --accent-color: #0056b3;
+            --border-color: #dddddd;
+            --header-bg: #ffffff;
+        }
+        :root[data-theme="pink"] {
+            --bg-color: #fff0f5;
+            --card-bg: #ffffff;
+            --text-color: #5a3d40;
+            --accent-color: #e75480;
+            --border-color: #ffb6c1;
+            --header-bg: #ffe4e1;
+        }
+        :root[data-theme="blue"] {
+            --bg-color: #eef4f8;
+            --card-bg: #ffffff;
+            --text-color: #1a365d;
+            --accent-color: #0284c7;
+            --border-color: #cbd5e1;
+            --header-bg: #e2e8f0;
+        }
+        :root[data-theme="animal"] {
+            --bg-color: #f3edd5;
+            --card-bg: #fffbf0;
+            --text-color: #4a3b32;
+            --accent-color: #558b2f;
+            --border-color: #d7ccc8;
+            --header-bg: #e8dfc8;
+        }
+        :root[data-theme="pikmin"] {
+            --bg-color: #f1f8e9;
+            --card-bg: #ffffff;
+            --text-color: #2e7d32;
+            --accent-color: #ff8f00;
+            --border-color: #c8e6c9;
+            --header-bg: #dcedc8;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
+        /* 🌐 全局基本樣式 */
         body {
             background-color: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.6;
-            padding: 20px;
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        header {
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0;
         }
 
         .container {
+            padding: 20px;
             max-width: 600px;
             margin: 0 auto;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        header h1 {
-            color: var(--primary-color);
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-        }
-
-        header p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
         .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 6px;
-            font-size: 0.9rem;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 12px;
+            background-color: var(--card-bg);
             border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* 🎨 風格選擇器下拉選單 */
+        .theme-selector {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        select {
+            padding: 8px 12px;
             border-radius: 8px;
-            font-size: 1rem;
-            background-color: #fff;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 14px;
         }
 
-        button.btn-primary {
-            width: 100%;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        button.btn-primary:hover {
-            background-color: var(--primary-dark);
-        }
-
-        .result-section {
-            display: none;
-        }
-
-        .result-title {
-            font-size: 1.1rem;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-            color: var(--primary-dark);
-        }
-
-        .info-box {
-            background-color: #f1f8f5;
-            border-left: 4px solid var(--primary-color);
-            padding: 12px;
-            border-radius: 0 8px 8px 0;
-            margin-bottom: 12px;
-            font-size: 0.95rem;
-        }
-
-        .step-list {
-            list-style-type: none;
-            padding-left: 0;
-        }
-
-        .step-list li {
-            position: relative;
-            padding-left: 28px;
-            margin-bottom: 10px;
-            font-size: 0.95rem;
-        }
-
-        .step-list li::before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .tag {
-            display: inline-block;
-            background-color: #e2f0e9;
-            color: var(--primary-dark);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            margin-left: 6px;
+        .auto-refresh-badge {
+            font-size: 12px;
+            background-color: var(--accent-color);
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 20px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
     <header>
-        <h1>🚇 MTR 簡易出行易</h1>
-        <p>一站式查閱候車時間、轉車路線及升降機位置</p>
+        <button class="menu-btn" onclick="toggleMenu()">...</button>
+        <h1>🚇 港鐵實時資訊網</h1>
+        <div class="auto-refresh-badge">⏱️ 15秒自動刷新</div>
     </header>
 
-    <!-- 搜尋表單 -->
-    <div class="card">
-        <div class="form-group">
-            <label for="startStation">📍 起點站</label>
-            <select id="startStation">
-                <option value="旺角">旺角 (Mong Kok)</option>
-                <option value="尖沙咀">尖沙咀 (Tsim Sha Tsui)</option>
-                <option value="金鐘">金鐘 (Admiralty)</option>
-                <option value="中環">中環 (Central)</option>
+    <div class="container">
+        <!-- 風格切換設定區 -->
+        <div class="card theme-selector">
+            <label for="themeSelect">🎨 選擇外觀風格：</label>
+            <select id="themeSelect" onchange="changeTheme(this.value)">
+                <option value="dark">黑色風格 (Dark)</option>
+                <option value="light">白色風格 (Light)</option>
+                <option value="pink">粉紅色風格 (Pink)</option>
+                <option value="blue">藍色風格 (Blue)</option>
+                <option value="animal">動物森友會風 (Animal Crossing)</option>
+                <option value="pikmin">手繪皮克敏風 (Pikmin)</option>
             </select>
         </div>
 
-        <div class="form-group">
-            <label for="endStation">🏁 終點站</label>
-            <select id="endStation">
-                <option value="中環" selected>中環 (Central)</option>
-                <option value="旺角">旺角 (Mong Kok)</option>
-                <option value="尖沙咀">尖沙咀 (Tsim Sha Tsui)</option>
-                <option value="金鐘">金鐘 (Admiralty)</option>
-            </select>
+        <!-- 測試用卡片：第一部分預告 -->
+        <div class="card">
+            <h3>⏱️ 第一部分：實時候車時間</h3>
+            <p>（此處將會顯示即時倒數、頭班車/尾班車及 Pin 釘選功能...）</p>
         </div>
 
-        <button class="btn-primary" onclick="searchRoute()">立即查詢出行方案</button>
+        <!-- 測試用卡片：第二部分預告 -->
+        <div class="card">
+            <h3>🗺️ 第二部分：轉車路線規劃</h3>
+            <p>（此處將會加入港鐵互動地圖與車卡智能建議...）</p>
+        </div>
+
+        <!-- 測試用卡片：第三部分預告 -->
+        <div class="card">
+            <h3>🛗 第三部分：車站地面升降機指南</h3>
+            <p>（此處將會加入雙軌查詢及升降機卡片...）</p>
+        </div>
     </div>
 
-    <!-- 查詢結果 (預設隱藏，按鈕按下後顯示) -->
-    <div id="resultContainer" class="result-section">
-        
-        <!-- 目的一：候車時間 -->
-        <div class="card">
-            <div class="result-title">⏱️ 實時候車時間</div>
-            <div class="info-box">
-                <strong>起點（旺角站 - 往中環方向）</strong><br>
-                🥇 下一班車：<strong>2 分鐘後</strong> <span class="tag">舒適 🟢</span><br>
-                🥈 之後一班：<strong>5 分鐘後</strong>
-            </div>
-        </div>
-
-        <!-- 目的二：轉車路線 -->
-        <div class="card">
-            <div class="result-title">🗺️ 最佳轉車路線</div>
-            <ul class="step-list">
-                <li>喺 <strong>旺角站</strong> 乘搭荃灣綫（往中環方向），坐 4 個站。</li>
-                <li>喺 <strong>金鐘站</strong> 落車，<strong>同層跨月台轉乘</strong> 港島綫（行幾步就得，唔使上落樓梯！）。</li>
-                <li>抵達目的地 <strong>中環站</strong>，全程大約需時 <strong>18 分鐘</strong>。</li>
-            </ul>
-        </div>
-
-        <!-- 目的三：升降機位置 -->
-        <div class="card">
-            <div class="result-title">🛗 目的地地面升降機位置 (中環站)</div>
-            <div class="info-box">
-                📍 <strong>出口 D1 / D2 (德輔道中)</strong>：近萬宜大廈，有升降機直達地面。<br>
-                📍 <strong>出口 J2 (遮打花園)</strong>：近美利道，有升降機直達地面。
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<script>
-    function searchRoute() {
-        const start = document.getElementById('startStation').value;
-        const end = document.getElementById('endStation').value;
-
-        if (start === end) {
-            alert('起點同終點唔可以相同架！');
-            return;
+    <script>
+        // 切換主題風格的 JavaScript 程式碼
+        function changeTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            // 順便記住使用者的選擇
+            localStorage.setItem('mtr_theme', themeName);
         }
 
-        // 顯示結果區域
-        const resultContainer = document.getElementById('resultContainer');
-        resultContainer.style.display = 'block';
-        
-        // 平滑滾動到結果
-        resultContainer.scrollIntoView({ behavior: 'smooth' });
-    }
-</script>
+        // 讀取之前儲存過嘅主題
+        window.onload = function() {
+            const savedTheme = localStorage.getItem('mtr_theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                document.getElementById('themeSelect').value = savedTheme;
+            }
+        }
+
+        function toggleMenu() {
+            alert("左上角選單功能即將推出！");
+        }
+    </script>
 
 </body>
 </html>
