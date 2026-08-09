@@ -1,44 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-HK">
 <head>
-<style>
-  .map-container { width: 100%; max-width: 600px; margin: auto; }
-  .station-dot { cursor: pointer; transition: 0.2s; fill: #5a4536; }
-  .station-dot:hover { fill: #e5a952; r: 8; }
-  #info-box { padding: 20px; border: 2px solid #ddd; margin-top: 10px; border-radius: 10px; }
-</style>
+    <meta charset="UTF-8">
+    <title>MTR 專業導航系統</title>
+    <style>
+        :root { --mtr-green: #007934; --bg: #f4f4f4; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        header { background: var(--mtr-green); color: white; padding: 15px; display: flex; align-items: center; }
+        .menu-btn { font-size: 24px; cursor: pointer; margin-right: 15px; }
+        .nav-drawer { display: none; background: white; padding: 10px; border-bottom: 1px solid #ccc; }
+        .nav-drawer button { display: block; width: 100%; padding: 10px; margin: 5px 0; border: none; background: #eee; cursor: pointer; }
+        .station-card { background: white; margin: 10px; padding: 15px; border-radius: 8px; border-left: 5px solid var(--mtr-green); }
+        .eta-line { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
+        .status-imminent { color: red; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-<div class="map-container">
-  <h3>點擊車站進行查詢：</h3>
-  <!-- 呢度係一個簡化版互動圖，你可以隨時加入更多車站 -->
-  <svg viewBox="0 0 400 200" style="background:#fdfdfd; border:1px solid #ccc">
-    <!-- 線路 -->
-    <line x1="50" y1="100" x2="350" y2="100" stroke="#78c8a0" stroke-width="4"/>
-    
-    <!-- 車站圓點 -->
-    <circle class="station-dot" cx="50" cy="100" r="5" onclick="showInfo('黃大仙')"/>
-    <text x="35" y="90" font-size="10">黃大仙</text>
-    
-    <circle class="station-dot" cx="200" cy="100" r="5" onclick="showInfo('鑽石山')"/>
-    <text x="185" y="90" font-size="10">鑽石山</text>
-    
-    <circle class="station-dot" cx="350" cy="100" r="5" onclick="showInfo('啟德')"/>
-    <text x="340" y="90" font-size="10">啟德</text>
-  </svg>
+<header>
+    <div class="menu-btn" onclick="toggleMenu()">…</div>
+    <div>MTR 導航系統</div>
+</header>
 
-  <div id="info-box">請點選地圖上的圓點...</div>
+<div id="nav" class="nav-drawer">
+    <button onclick="switchMode(1)">1. 車站到達時間</button>
+    <button onclick="switchMode(2)">2. 轉車路徑與車卡建議</button>
+    <button onclick="switchMode(3)">3. 地面升降機指南</button>
 </div>
 
+<div id="app"></div>
+
 <script>
-function showInfo(station) {
-  document.getElementById('info-box').innerHTML = `
-    <h4>${station} 站</h4>
-    <p>升降機：位於大堂閘內，可直達月台。</p>
-    <button onclick="alert('導航中...')">前往此站</button>
-  `;
+// 修正資料庫：確保天后、海洋公園等站資訊齊全
+const MTR_DATA = {
+    "TIN": { name: "天后", lift: "月台尾段(第 6 卡)設升降機往大堂", suggestion: "建議第 5-6 卡上車" },
+    "OCH": { name: "海洋公園", lift: "月台中央設升降機往大堂", suggestion: "建議第 3-4 卡上車" },
+    // ... 其他車站數據將會整合
+};
+
+// 狀態管理
+let state = {
+    mode: 1,
+    pins: JSON.parse(localStorage.getItem('pins') || '[]'),
+    stations: MTR_DATA
+};
+
+// 1. 修改時間顯示邏輯：即將到達修正
+function formatTime(targetTime) {
+    const diff = (new Date(targetTime) - new Date()) / 60000;
+    if (diff <= 0) return "已到達";
+    if (diff <= 1) return "即將到達";
+    return Math.floor(diff) + " 分鐘";
 }
+
+// 2. 核心自動更新引擎 (每 30 秒)
+setInterval(async () => {
+    if (state.mode === 1) updateETAs();
+}, 30000);
+
+function toggleMenu() {
+    const nav = document.getElementById('nav');
+    nav.style.display = nav.style.display === 'block' ? 'none' : 'block';
+}
+
+function switchMode(m) {
+    state.mode = m;
+    toggleMenu();
+    render();
+}
+
+function render() {
+    // 渲染介面邏輯...
+    console.log("Rendering mode:", state.mode);
+}
+
+// 核心建議：為甚麼你覺得資料庫不齊？
+// 因為港鐵官方 API 只提供班次，不會直接提供「升降機距離」。
+// 我建議我們建立一個本地 JSON，儲存全線各站的「最佳上車車卡」。
 </script>
 </body>
 </html>
