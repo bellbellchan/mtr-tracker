@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>港鐵實時資訊網 MTR Live Info</title>
     <style>
-        /* 🎨 主題顏色變數設定 (6款風格) */
+        /* 🎨 主題顏色變數設定 (5款精選風格) */
         :root[data-theme="dark"] {
             --bg-color: #121212;
             --card-bg: #1e1e1e;
@@ -30,7 +30,6 @@
             --border-color: #ffb6c1;
             --header-bg: #ffe4e1;
         }
-        /* 🔵 改為深藍色風格 */
         :root[data-theme="blue"] {
             --bg-color: #0b132b;
             --card-bg: #1c2541;
@@ -39,22 +38,14 @@
             --border-color: #3a506b;
             --header-bg: #1c2541;
         }
-        :root[data-theme="animal"] {
+        /* 🌿 改為自然風格 */
+        :root[data-theme="natural"] {
             --bg-color: #f3edd5;
             --card-bg: #fffbf0;
             --text-color: #4a3b32;
             --accent-color: #558b2f;
             --border-color: #d7ccc8;
             --header-bg: #e8dfc8;
-        }
-        /* 🌿 手繪皮克敏風格 (加入特色裝飾) */
-        :root[data-theme="pikmin"] {
-            --bg-color: #f4f9f0;
-            --card-bg: #ffffff;
-            --text-color: #2e5a1b;
-            --accent-color: #7cb342;
-            --border-color: #aed581;
-            --header-bg: #e8f5e9;
         }
 
         /* 🌐 全局基本樣式 */
@@ -210,17 +201,6 @@
         .page-content.active {
             display: block;
         }
-
-        /* 皮克敏風專屬裝飾樣式 */
-        .pikmin-decoration {
-            display: none;
-            text-align: center;
-            font-size: 22px;
-            margin-bottom: 10px;
-        }
-        [data-theme="pikmin"] .pikmin-decoration {
-            display: block;
-        }
     </style>
 </head>
 <body>
@@ -248,23 +228,17 @@
         <div class="sidebar-section">
             <label for="themeSelect">🎨 選擇外觀風格：</label>
             <select id="themeSelect" onchange="changeTheme(this.value)">
-                <option value="dark">黑色風格 (Dark)</option>
-                <option value="light">白色風格 (Light)</option>
-                <option value="pink">粉紅色風格 (Pink)</option>
+                <option value="dark">黑色風格 (Dark Mode)</option>
+                <option value="light">白色風格 (Light Mode)</option>
+                <option value="pink">粉紅色風格 (Pink Theme)</option>
                 <option value="blue">深藍色風格 (Dark Blue)</option>
-                <option value="animal">動物森友會風 (Animal)</option>
-                <option value="pikmin">手繪皮克敏風 (Pikmin 🌸)</option>
+                <option value="natural">自然風格 (Natural Style)</option>
             </select>
         </div>
     </div>
 
     <!-- 主要內容區 -->
     <div class="container">
-
-        <!-- 皮克敏風專屬小精靈提示 -->
-        <div class="pikmin-delegate pikmin-decoration">
-            🌿 🌸 🌱 <strong>皮克敏正在幫你加速搬運地鐵資料！</strong> 🍃 🌼 🍄
-        </div>
 
         <!-- 頁面 1：釘選站 (Pinned) -->
         <div id="page-pinned" class="page-content active">
