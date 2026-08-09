@@ -348,14 +348,14 @@
                 "CEN": "中環",
                 "TSW": "荃灣",
                 "CHW": "柴灣",
-                "KET": "堅尼地城",
+                    "KET": "堅尼地城",
                 "NOP": "北角",
                 "QUB": "鰂魚涌"
             };
             return destMap[destCode] || destCode;
         }
 
-        // 即使已到達，照樣計出預計到達/開出時間並顯示喺左邊
+        // 準確修正剩餘分鐘與時間對齊
         function formatArrivalTime(rawTime) {
             if (rawTime === undefined || rawTime === null) return { text: "暫無資料", timeStr: "" };
 
@@ -374,7 +374,8 @@
                 arrivalDate = new Date(rawTime.replace(/-/g, "/"));
                 let now = new Date();
                 let diffMs = arrivalDate - now;
-                let diffMins = Math.round(diffMs / 60000);
+                // 改用 Math.floor 避免未夠 1 分鐘就被四捨五入上去 1 分鐘
+                let diffMins = Math.floor(diffMs / 60000);
 
                 if (isNaN(arrivalDate.getTime())) {
                     return { text: "暫無資料", timeStr: "" };
