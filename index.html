@@ -3,125 +3,418 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MTR 實時班次</title>
+<title>MTR候車時間</title>
 <style>
-    body { font-family: sans-serif; background: #fbf9f4; padding: 20px; color: #5a4536; }
-    .card { background: #fff; border: 2px solid #e8ded1; border-radius: 20px; padding: 20px; margin-bottom: 20px; }
-    h2 { font-size: 1.1rem; margin-bottom: 15px; color: #6e5543; }
-    select, button { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 2px solid #e8ded1; font-weight: bold; }
-    button { background: #78c8a0; color: white; border: none; cursor: pointer; }
-    .plat-box { margin-top: 15px; }
-    .plat-title { background: #f0e6d2; padding: 5px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-bottom: 5px; }
-    .train-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; font-size: 0.95rem; }
-    .time-val { font-weight: bold; color: #4caf50; }
-    .departed { color: #b5a496; }
-    .btn-del { background: #e57373; font-size: 0.7rem; padding: 5px 10px; }
+:root { 
+  --bg-color: #fbf9f4; 
+  --card-bg: #ffffff; 
+  --font-color: #6e5543; 
+  --primary-green: #78c8a0; 
+  --border-color: #e8ded1; 
+} 
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
+  color: var(--font-color); 
+} 
+body { 
+  background-color: var(--bg-color); 
+  padding: 16px; 
+  max-width: 500px; 
+  margin: 0 auto; 
+  padding-bottom: 40px; 
+} 
+header { 
+  text-align: center; 
+  padding: 20px 0; 
+  background-color: var(--primary-green); 
+  border: 4px solid #61b38a; 
+  border-radius: 24px; 
+  margin-bottom: 16px; 
+  box-shadow: 0 6px 0 #549f7a; 
+} 
+header h1 { 
+  font-size: 1.5rem; 
+  color: white; 
+  text-shadow: 2px 2px 0px #549f7a; 
+  letter-spacing: 2px; 
+} 
+h2 { 
+  font-size: 1.1rem; 
+  margin-bottom: 12px; 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  color: #5a4536; 
+} 
+.section { 
+  background: var(--card-bg); 
+  border: 3px solid var(--border-color); 
+  border-radius: 24px; 
+  padding: 18px; 
+  margin-bottom: 18px; 
+  box-shadow: 0 4px 0 var(--border-color); 
+} 
+label { 
+  display: block; 
+  font-size: 0.85rem; 
+  font-weight: bold; 
+  color: #a18e7e; 
+  margin-bottom: 6px; 
+} 
+select { 
+  width: 100%; 
+  padding: 14px; 
+  border: 2px solid var(--border-color); 
+  border-radius: 16px; 
+  font-size: 1rem; 
+  margin-bottom: 14px; 
+  background-color: #fcfbfa; 
+  font-weight: bold; 
+  outline: none; 
+} 
+button { 
+  width: 100%; 
+  padding: 14px; 
+  background-color: var(--primary-green); 
+  color: white; 
+  border: none; 
+  border-radius: 18px; 
+  font-size: 1rem; 
+  font-weight: bold; 
+  cursor: pointer; 
+  box-shadow: 0 4px 0 #549f7a; 
+  text-shadow: 1px 1px 0px #549f7a; 
+  margin-bottom: 8px;
+} 
+button:active { 
+  transform: translateY(2px); 
+  box-shadow: 0 2px 0 #549f7a; 
+} 
+.btn-pin {
+  background-color: #e5a952;
+  box-shadow: 0 4px 0 #c28d3f;
+  text-shadow: 1px 1px 0px #c28d3f;
+}
+.btn-unpin {
+  background-color: #e57373;
+  box-shadow: 0 4px 0 #c65353;
+  text-shadow: 1px 1px 0px #c65353;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  width: auto;
+  margin: 0;
+}
+.pinned-item {
+  background: #faf6ee;
+  border: 2px solid #e2d3be;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.pinned-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  border-bottom: 2px dashed #e5d9c5;
+  padding-bottom: 8px;
+}
+.dir-container { 
+  margin-top: 10px; 
+  padding: 10px;
+  background: #fdfdfd; 
+  border: 2px solid #eef2e6; 
+  border-radius: 14px;
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+} 
+.eta-time { 
+  font-weight: bold; 
+  font-size: 1.05rem; 
+  color: #4caf50; 
+} 
+.eta-time.imminent { 
+  color: #e57373; 
+  animation: blink 1s infinite; 
+} 
+.eta-time.departed { 
+  color: #b5a496; 
+  font-size: 0.95rem;
+}
+@keyframes blink { 
+  50% { opacity: 0.6; } 
+} 
+.loading { 
+  text-align: center; 
+  color: #a18e7e; 
+  padding: 15px 0; 
+  font-weight: bold; 
+} 
+.update-time {
+  font-size: 0.7rem;
+  color: #b5a496;
+  text-align: right;
+  margin-top: 6px;
+}
 </style>
 </head>
 <body>
 
-<div class="card" id="pinned-section">
-    <h2>📌 我的車站</h2>
-    <div id="pinned-list"></div>
+<header>
+  <h1>🍃 MTR 候車時間</h1>
+</header>
+
+<!-- 已 Pin 車站區塊 -->
+<div class="section" id="pinned-section" style="display: none;">
+  <h2>📌 已 Pin 車站</h2>
+  <div id="pinned-container"></div>
 </div>
 
-<div class="card">
-    <h2>🔍 查詢班次</h2>
-    <select id="line-sel" onchange="updateStationOptions()">
-        <option value="">選擇路線</option>
-        <option value="KTL">觀塘綫</option>
-        <option value="ISL">港島綫</option>
-        <option value="TWL">荃灣綫</option>
-        <option value="EAL">東鐵綫</option>
-        <option value="TML">屯馬綫</option>
-    </select>
-    <select id="sta-sel"><option value="">請先選路線</option></select>
-    <button onclick="addPin()">Pin 實呢個站</button>
-    <div id="result-area"></div>
+<!-- 查詢區塊 -->
+<div class="section">
+  <h2>🔍 查詢車站班次</h2>
+  <label>鐵路綫</label>
+  <select id="line-select" onchange="updateStations()">
+    <option value="">-- 請選擇鐵路綫 --</option>
+    <option value="KTL">觀塘綫</option>
+    <option value="ISL">港島綫</option>
+    <option value="TWL">荃灣綫</option>
+    <option value="SIL">南港島綫</option>
+    <option value="TKL">將軍澳綫</option>
+    <option value="EAL">東鐵綫</option>
+    <option value="TML">屯馬綫</option>
+    <option value="TCL">東涌綫</option>
+    <option value="AEL">機場快綫</option>
+  </select>
+  
+  <label>車站</label>
+  <select id="station-select">
+    <option value="">-- 請先選擇鐵路綫 --</option>
+  </select>
+  
+  <button onclick="fetchETAFromUI()">查看班次</button>
+  <button class="btn-pin" onclick="pinCurrentStation()">📌 Pin 實呢個站</button>
+</div>
+
+<!-- 搜尋結果預覽 -->
+<div class="section" id="result-section" style="display: none;">
+  <h2 id="result-title">班次時間</h2>
+  <div id="eta-results"></div>
 </div>
 
 <script>
-const stations = {
-    KTL: {WHA:"黃埔", HOM:"何文田", TIK:"調景嶺", KWT:"觀塘"},
-    ISL: {KET:"堅尼地城", CEN:"中環", TIN:"天后", CHW:"柴灣"},
-    TWL: {CEN:"中環", TST:"尖沙咀", TSW:"荃灣"},
-    EAL: {ADM:"金鐘", HUH:"紅磡", TAP:"大埔墟", SHS:"上水"},
-    TML: {TUM:"屯門", YUL:"元朗", MEF:"美孚", TAW:"大圍", MOS:"馬鞍山"}
-};
+const mtrData = { 
+  KTL: { name: "觀塘綫", stations: { WHA:"黃埔", HOM:"何文田", YMT:"油麻地", MOK:"旺角", PRE:"太子", SKM:"石硤尾", KOT:"九龍塘", LOF:"樂富", WTS:"黃大仙", CHH:"鑽石山", KOB:"九龍灣", NTK:"牛頭角", KWT:"觀塘", LAT:"藍田", YAT:"油塘", TIK:"調景嶺" } }, 
+  ISL: { name: "港島綫", stations: { KET:"堅尼地城", HKU:"香港大學", SYP:"西營盤", SHW:"上環", CEN:"中環", ADM:"金鐘", WAC:"灣仔", CWB:"銅鑼灣", TIN:"天后", FOH:"炮台山", NOP:"北角", QUB:"鰂魚涌", TAE:"太古", SWH:"西灣河", SKW:"筲箕灣", CHW:"柴灣" } }, 
+  TWL: { name: "荃灣綫", stations: { CEN:"中環", ADM:"金鐘", TST:"尖沙咀", JOR:"佐敦", YMT:"油麻地", MOK:"旺角", PRE:"太子", SSP:"深水埗", CSW:"長沙灣", LCK:"荔枝角", MEF:"美孚", LAK:"荔景", KWF:"葵芳", KWH:"葵興", TWH:"大窩口", TSW:"荃灣" } }, 
+  SIL: { name: "南港島綫", stations: { ADM:"金鐘", OCH:"海洋公園", WCH:"黃竹坑", LET:"利東", SOH:"海怡半島" } }, 
+  TKL: { name: "將軍澳綫", stations: { NOP:"北角", QUB:"鰂魚涌", YAT:"油塘", TIK:"調景嶺", TKO:"將軍澳", LHP:"康城", KHA:"坑口", POA:"寶琳" } }, 
+  EAL: { name: "東鐵綫", stations: { ADM:"金鐘", EXC:"會展", HUH:"紅磡", MKK:"旺角東", KOT:"九龍塘", TAW:"大圍", SHT:"沙田", FOT:"火炭", RAC:"馬場", UNI:"大學", TAP:"大埔墟", TWO:"太和", FAN:"粉嶺", SHS:"上水", LOW:"羅湖", LMC:"落馬洲" } }, 
+  TML: { name: "屯馬綫", stations: { TUM:"屯門", SIH:"兆康", TIS:"天水圍", LFS:"朗屏", YUL:"元朗", KSR:"錦上路", TWW:"荃灣西", MEF:"美孚", NAC:"南昌", OLY:"奧運", KOW:"九龍", AUS:"柯士甸", ETS:"尖東", HOM:"何文田", TKW:"土瓜灣", SUW:"宋皇臺", CKW:"啟德", DIH:"鑽石山", HIK:"顯徑", TAW:"大圍", CKO:"車公廟", SHM:"沙田圍", CIO:"第一城", STW:"石門", TSH:"大水坑", HEO:"恆安", MOS:"馬鞍山", WKS:"烏溪沙" } }, 
+  TCL: { name: "東涌綫", stations: { HOK:"香港", KOW:"九龍", OLY:"奧運", NAC:"南昌", LAK:"荔景", TSY:"青衣", SUN:"欣澳", TUC:"東涌" } }, 
+  AEL: { name: "機場快綫", stations: { HOK:"香港", KOW:"九龍", TSY:"青衣", AIR:"機場", AWE:"博覽館" } } 
+}; 
 
-// 簡單翻譯表
-const trans = { "WHA":"黃埔", "HOM":"何文田", "TIK":"調景嶺", "KWT":"觀塘", "KET":"堅尼地城", "CEN":"中環", "TIN":"天后", "CHW":"柴灣", "TST":"尖沙咀", "TSW":"荃灣", "ADM":"金鐘", "HUH":"紅磡", "TAP":"大埔墟", "SHS":"上水", "TUM":"屯門", "YUL":"元朗", "MEF":"美孚", "TAW":"大圍", "MOS":"馬鞍山" };
-
-function updateStationOptions() {
-    const line = document.getElementById('line-sel').value;
-    const sel = document.getElementById('sta-sel');
-    sel.innerHTML = '<option value="">選擇車站</option>';
-    if(stations[line]) {
-        for(let code in stations[line]) {
-            sel.innerHTML += `<option value="${code}">${stations[line][code]}</option>`;
-        }
-    }
+const destTranslation = {};
+for (let lineKey in mtrData) {
+  for (let code in mtrData[lineKey].stations) {
+    destTranslation[code] = mtrData[lineKey].stations[code];
+  }
 }
 
-async function fetchMTR(line, sta, container) {
-    container.innerHTML = "讀取中...";
-    try {
-        let res = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${line}&sta=${sta}`);
-        let json = await res.json();
-        if(json.status !== 1) { container.innerHTML = "暫無資料"; return; }
-        
-        container.innerHTML = "";
-        let data = json.data[`${line}-${sta}`];
-        renderPlat(data.UP, container, "月台 1");
-        renderPlat(data.DOWN, container, "月台 2");
-    } catch(e) { container.innerHTML = "連接錯誤"; }
+let refreshTimer = null;
+
+function formatDiffText(diffSecs) { 
+  if (diffSecs < -15) return "已開出 💨";
+  if (diffSecs <= 15) return "已到達 🟢"; 
+  const diffMins = Math.ceil(diffSecs / 60);
+  if (diffMins === 1) return "1 分鐘";
+  if (diffMins >= 60) { 
+    return `${Math.floor(diffMins / 60)} 小時 ${diffMins % 60} 分鐘`; 
+  } 
+  return `${diffMins} 分鐘`; 
+} 
+
+function updateStations() { 
+  const lineSelect = document.getElementById("line-select"); 
+  const stationSelect = document.getElementById("station-select"); 
+  const selectedLine = lineSelect.value; 
+  stationSelect.innerHTML = '<option value="">-- 請選擇車站 --</option>'; 
+  if (selectedLine && mtrData[selectedLine]) { 
+    for (const [code, name] of Object.entries(mtrData[selectedLine].stations)) { 
+      const option = document.createElement("option"); 
+      option.value = code; 
+      option.textContent = name; 
+      stationSelect.appendChild(option); 
+    } 
+  } 
+} 
+
+function renderSingleTrain(train, container, platformName) {
+  if (!train || !train.time) return;
+  const rawDestCode = train.dest; 
+  const destChinese = destTranslation[rawDestCode] || rawDestCode; 
+  
+  const timeStr = train.time.replace(/-/g, "/"); 
+  const trainTime = new Date(timeStr);
+  const diffSecs = Math.floor((trainTime - new Date()) / 1000); 
+  
+  let timeDisplay = formatDiffText(diffSecs); 
+  let extraClass = "";
+  if (diffSecs <= 15 && diffSecs >= -15) extraClass = "imminent";
+  else if (diffSecs < -15) extraClass = "departed";
+
+  const dirDiv = document.createElement("div"); 
+  dirDiv.className = "dir-container"; 
+  dirDiv.innerHTML = `
+    <div>
+      <div style="font-weight:bold; font-size:0.95rem; color:#614c3b; margin-bottom:3px;">${platformName} 往 ${destChinese}</div>
+      <div style="font-size:0.75rem; color:#b5a496;">月台 ${train.plat} | 預定 ${train.time.substring(11, 16)}</div>
+    </div>
+    <div class="eta-time ${extraClass}">${timeDisplay}</div>
+  `; 
+  container.appendChild(dirDiv);
 }
 
-function renderPlat(list, container, title) {
-    if(!list || list.length === 0) return;
-    let box = document.createElement('div');
-    box.className = 'plat-box';
-    box.innerHTML = `<div class="plat-title">${title}</div>`;
-    list.forEach(t => {
-        let now = new Date();
-        let tTime = new Date(t.time.replace(/-/g, "/"));
-        let diff = Math.floor((tTime - now) / 60000);
-        let timeTxt = diff < 0 ? "已開出" : (diff <= 1 ? "已到站" : diff + " 分鐘");
-        box.innerHTML += `<div class="train-item"><span>往 ${trans[t.dest] || t.dest}</span><span class="time-val ${diff < 0 ? 'departed':''}">${timeTxt}</span></div>`;
+async function fetchETA(line, station, container, isPreview) {
+  if (isPreview) {
+    container.innerHTML = '<div class="loading">💬 正在讀取班次...</div>';
+  }
+  try { 
+    const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${line}&sta=${station}`); 
+    const data = await response.json(); 
+    if (data.status === 1 && data.data[`${line}-${station}`]) { 
+      const schedule = data.data[`${line}-${station}`]; 
+      container.innerHTML = ""; 
+      let hasData = false; 
+      
+      // 只取每方向最快到的一班車
+      if (schedule.UP && schedule.UP.length > 0) { 
+        renderSingleTrain(schedule.UP[0], container, "月台 1"); 
+        hasData = true; 
+      } 
+      if (schedule.DOWN && schedule.DOWN.length > 0) { 
+        renderSingleTrain(schedule.DOWN[0], container, "月台 2"); 
+        hasData = true; 
+      } 
+      
+      if (!hasData) {
+        container.innerHTML = "<div class='loading'>💤 呢個車站依家休息緊。</div>";
+      } else if (!isPreview) {
+        const timeDiv = document.createElement("div");
+        timeDiv.className = "update-time";
+        timeDiv.textContent = `最後更新: ${new Date().toTimeString().substring(0, 5)}`;
+        container.appendChild(timeDiv);
+      }
+    } else { 
+      container.innerHTML = "<div class='loading'>🌿 暫時未有此車站的班次。</div>"; 
+    } 
+  } catch (error) { 
+    container.innerHTML = "<div class='loading'>❌ 聯絡失敗，請稍後再試。</div>"; 
+  } 
+} 
+
+function fetchETAFromUI() { 
+  const lineSelect = document.getElementById("line-select"); 
+  const stationSelect = document.getElementById("station-select"); 
+  if (!lineSelect.value || !stationSelect.value) { 
+    alert("請先選擇路綫同車站！"); 
+    return; 
+  } 
+  const resultSection = document.getElementById("result-section");
+  const resultTitle = document.getElementById("result-title");
+  const etaResults = document.getElementById("eta-results");
+  
+  resultSection.style.display = "block"; 
+  resultTitle.textContent = `🍃 ${mtrData[lineSelect.value].name} ‧ ${mtrData[lineSelect.value].stations[stationSelect.value]}`; 
+  fetchETA(lineSelect.value, stationSelect.value, etaResults, true);
+}
+
+function pinCurrentStation() {
+  const lineSelect = document.getElementById("line-select"); 
+  const stationSelect = document.getElementById("station-select"); 
+  if (!lineSelect.value || !stationSelect.value) { 
+    alert("請先選擇想 Pin 嘅路綫同車站！"); 
+    return; 
+  }
+  
+  let pinnedList = JSON.parse(localStorage.getItem('mtr_pinned_stations') || '[]');
+  const newItem = { line: lineSelect.value, station: stationSelect.value };
+  
+  const exists = pinnedList.some(item => item.line === newItem.line && item.station === newItem.station);
+  if (!exists) {
+    pinnedList.push(newItem);
+    localStorage.setItem('mtr_pinned_stations', JSON.stringify(pinnedList));
+    loadPinnedStations();
+    alert("成功 Pin 實此車站！");
+  } else {
+    alert("呢個車站已經喺已 Pin 清單入面！");
+  }
+}
+
+function removePinned(line, station) {
+  let pinnedList = JSON.parse(localStorage.getItem('mtr_pinned_stations') || '[]');
+  pinnedList = pinnedList.filter(item => !(item.line === line && item.station === station));
+  localStorage.setItem('mtr_pinned_stations', JSON.stringify(pinnedList));
+  loadPinnedStations();
+}
+
+function loadPinnedStations() {
+  const pinnedSection = document.getElementById("pinned-section");
+  const container = document.getElementById("pinned-container");
+  let pinnedList = JSON.parse(localStorage.getItem('mtr_pinned_stations') || '[]');
+
+  if (pinnedList.length === 0) {
+    pinnedSection.style.display = "none";
+    container.innerHTML = "";
+    return;
+  }
+
+  pinnedSection.style.display = "block";
+  container.innerHTML = "";
+
+  pinnedList.forEach(item => {
+    const lineName = mtrData[item.line]?.name || "";
+    const stationName = mtrData[item.line]?.stations[item.station] || "";
+    if(!lineName || !stationName) return;
+
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "pinned-item";
+    itemDiv.innerHTML = `
+      <div class="pinned-header">
+        <strong>${lineName} ‧ ${stationName}</strong>
+        <button class="btn-unpin" onclick="removePinned('${item.line}', '${item.station}')">✖ 取消 Pin</button>
+      </div>
+      <div id="pin-content-${item.line}-${item.station}">
+        <div class="loading">💬 讀取中...</div>
+      </div>
+    `;
+    container.appendChild(itemDiv);
+    fetchETA(item.line, item.station, document.getElementById(`pin-content-${item.line}-${item.station}`), false);
+  });
+}
+
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => {
+    let pinnedList = JSON.parse(localStorage.getItem('mtr_pinned_stations') || '[]');
+    pinnedList.forEach(item => {
+      const contentEl = document.getElementById(`pin-content-${item.line}-${item.station}`);
+      if (contentEl) {
+        fetchETA(item.line, item.station, contentEl, false);
+      }
     });
-    container.appendChild(box);
+  }, 15000);
 }
 
-function addPin() {
-    let line = document.getElementById('line-sel').value;
-    let sta = document.getElementById('sta-sel').value;
-    if(!line || !sta) return;
-    let pins = JSON.parse(localStorage.getItem('pins') || '[]');
-    if(!pins.find(p => p.line==line && p.sta==sta)) {
-        pins.push({line, sta});
-        localStorage.setItem('pins', JSON.stringify(pins));
-        loadPins();
-    }
-}
-
-function loadPins() {
-    let list = document.getElementById('pinned-list');
-    list.innerHTML = "";
-    JSON.parse(localStorage.getItem('pins') || '[]').forEach(p => {
-        let div = document.createElement('div');
-        div.innerHTML = `<strong>${stations[p.line][p.sta]}</strong> <button class="btn-del" onclick="delPin('${p.line}', '${p.sta}')">取消</button><div id="p-${p.line}-${p.sta}"></div>`;
-        list.appendChild(div);
-        fetchMTR(p.line, p.sta, document.getElementById(`p-${p.line}-${p.sta}`));
-    });
-}
-
-function delPin(line, sta) {
-    let pins = JSON.parse(localStorage.getItem('pins') || '[]').filter(p => !(p.line==line && p.sta==sta));
-    localStorage.setItem('pins', JSON.stringify(pins));
-    loadPins();
-}
-
-loadPins();
+window.addEventListener('DOMContentLoaded', () => {
+  loadPinnedStations();
+  startAutoRefresh();
+});
 </script>
 </body>
 </html>
