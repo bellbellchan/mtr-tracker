@@ -10,7 +10,7 @@
             --bg-color: #121212;
             --card-bg: #1e1e1e;
             --text-color: #e0e0e0;
-            --accent-color: #ff9800;
+            --accent-color: #38bdf8;
             --border-color: #333333;
             --header-bg: #1f1f1f;
         }
@@ -95,6 +95,7 @@
             padding: 16px;
             margin-bottom: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: relative;
         }
 
         .auto-refresh-badge {
@@ -218,6 +219,22 @@
             border-radius: 6px;
             font-weight: bold;
         }
+
+        /* 取消 Pin 按鈕 */
+        .unpin-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .unpin-btn:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -226,7 +243,7 @@
     <header>
         <button class="menu-btn" onclick="toggleSidebar()">...</button>
         <h1 id="headerTitle">⭐ 我的釘選站 (Pinned)</h1>
-        <div class="auto-refresh-badge" id="refreshStatus">⏱️ 15s</div>
+        <div class="auto-refresh-badge">⏱️ 15s</div>
     </header>
 
     <!-- 側邊選單 (Sidebar) -->
@@ -271,7 +288,7 @@
         <div id="page-search" class="page-content">
             <div class="card">
                 <h3>🔍 搜尋全港車站候車時間</h3>
-                <p>（下一步即將為你解鎖完整搜尋與展開多條路線功能...）</p>
+                <p>（下一步即將為你解鎖完整搜尋功能...）</p>
             </div>
         </div>
 
@@ -294,19 +311,17 @@
     </div>
 
     <script>
-        // 預設你的釘選站 (可自訂線路代碼與車站代碼)
-        const pinnedList = [
-            { line: "TWL", station: "MOK", name: "旺角站 (Mong Kok) - 荃灣綫" },
-            { line: "ISL", station: "ADM", name: "金鐘站 (Admiralty) - 港島綫" }
+        // 預設你的釘選站（使用陣列儲存，方便隨時新增或刪除）
+        let pinnedList = [
+            { id: "TWL-MOK", line: "TWL", station: "MOK", name: "旺角站 (Mong Kok) - 荃灣綫" },
+            { id: "ISL-ADM", line: "ISL", station: "ADM", name: "金鐘站 (Admiralty) - 港島綫" }
         ];
 
-        // 切換側邊選單
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
             document.getElementById('overlay').classList.toggle('show');
         }
 
-        // 切換頁面
         function switchPage(pageId, titleText) {
             const pages = document.querySelectorAll('.page-content');
             pages.forEach(page => page.classList.remove('active'));
@@ -318,68 +333,91 @@
             toggleSidebar();
         }
 
-        // 切換主題風格
         function changeTheme(themeName) {
             document.documentElement.setAttribute('data-theme', themeName);
             localStorage.setItem('mtr_theme', themeName);
         }
 
-        // 取得港鐵實時數據函數
+        // 取消 Pin 功能
+        function removePin(id) {
+            pinnedList = pinnedList.filter(item => item.id !== id);
+            fetchMTRData(); // 重新整理畫面
+        }
+
+        // 將英文目的地代碼轉換為中文
+        function translateDestination(destCode) {
+            const destMap = {
+                "CEN": "中環",
+                "TSW": "荃灣",
+                "CHW": "柴灣",
+                "KET": "堅尼地城",
+                "NOP": "北角",
+                "QUB": "鰂魚涌"
+            };
+            return destMap[destCode] || destCode;
+        }
+
         async function fetchMTRData() {
             const container = document.getElementById('pinnedStationsContainer');
+            
+            if (pinnedList.length === 0) {
+                container.innerHTML = `<div class="card" style="text-align: center;"><p>⭐ 你目前未有任何釘選站！</p><p style="font-size: 13px; opacity: 0.6;">去「搜尋全港車站」可以再加返架～</p></div>`;
+                return;
+            }
+
             let htmlContent = "";
 
             try {
-                // 逐一向港鐵 API 取得已 Pin 車站嘅資料
                 for (let item of pinnedList) {
                     const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${item.line}&sta=${item.station}`);
                     const data = await response.json();
 
+                    htmlContent += `
+                        <div class="card">
+                            <button class="unpin-btn" onclick="removePin('${item.id}')" title="取消 Pin">❌</button>
+                            <h3>📌 ${item.name}</h3>
+                    `;
+
                     if (data.status === 1 && data.data && data.data[`${item.line}-${item.station}`]) {
                         const stationData = data.data[`${item.line}-${item.station}`];
-                        htmlContent += `<div class="card"><h3>📌 ${item.name}</h3>`;
 
-                        // 檢查上下行資料 (UP / DOWN)
                         ['UP', 'DOWN'].forEach(dir => {
-                            if (stationData[dir]) {
+                            if (stationData[dir] && stationData[dir].length > 0) {
                                 const platform = stationData[dir];
-                                // 取第一班車資料
-                                const firstTrain = platform[0] ? `${platform[0].time} 分鐘 (${platform[0].dest})` : "暫無資料";
+                                const destName = translateDestination(platform[0].dest);
+                                const timeMinutes = platform[0].time;
+                                const platNum = platform[0].plat || "-"; // 取得月台編號
+
                                 htmlContent += `
                                     <div class="train-row">
-                                        <span><strong>方向：${platform[0] ? platform[0].dest : dir}</strong></span>
-                                        <span class="time-badge">下一班: ${firstTrain}</span>
+                                        <span><strong>月台 ${platNum}</strong> ｜ 往 ${destName}</span>
+                                        <span class="time-badge">${timeMinutes} 分鐘後到達</span>
                                     </div>
                                 `;
                             }
                         });
-
-                        htmlContent += `</div>`;
                     } else {
-                        htmlContent += `<div class="card"><h3>📌 ${item.name}</h3><p>暫時無法取得實時數據</p></div>`;
+                        htmlContent += `<p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">暫時無法取得實時數據</p>`;
                     }
+
+                    htmlContent += `</div>`;
                 }
 
                 container.innerHTML = htmlContent;
             } catch (error) {
                 console.error("取得港鐵數據失敗:", error);
-                container.innerHTML = `<div class="card"><p style="text-align: color: red;">⚠️ 網絡連接發生錯誤，正嘗試自動重新整理...</p></div>`;
+                container.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">⚠️ 網絡連接發生錯誤，正嘗試自動重新整理...</p></div>`;
             }
         }
 
-        // 頁面載入時執行
         window.onload = function() {
-            // 恢復儲存嘅主題
             const savedTheme = localStorage.getItem('mtr_theme');
             if (savedTheme) {
                 document.documentElement.setAttribute('data-theme', savedTheme);
                 document.getElementById('themeSelect').value = savedTheme;
             }
 
-            // 首次載入獲取數據
             fetchMTRData();
-
-            // 設定 15 秒自動刷新計時器
             setInterval(fetchMTRData, 15000);
         };
     </script>
