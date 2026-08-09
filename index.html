@@ -3,70 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MTR Pro 導航</title>
+    <title>MTR 實時快搜</title>
     <style>
         :root { --green: #007934; --bg: #fdfdfd; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-        header { display: flex; align-items: center; background: var(--green); color: white; padding: 10px; border-radius: 12px; }
-        .menu { font-size: 24px; margin-right: 15px; cursor: pointer; }
-        #menu-content { display: none; background: white; border: 1px solid #ccc; padding: 10px; border-radius: 8px; margin-top: 5px; }
-        .card { background: white; border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-top: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .train-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
-        .imminent { color: #d32f2f; font-weight: bold; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 15px; max-width: 500px; margin: auto; }
+        .card { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        select, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
+        button { background: var(--green); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .pin-btn { background: #ffebee; color: #c62828; font-size: 0.75em; padding: 5px; margin-top: 5px; border-radius: 4px; }
+        .eta-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f6f6f6; }
+        .urgent { color: #d32f2f; font-weight: bold; }
+        .time-label { color: #666; }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="menu" onclick="document.getElementById('menu-content').style.display = (document.getElementById('menu-content').style.display === 'block' ? 'none' : 'block')">…</div>
-    <div>MTR 系統</div>
-</header>
-
-<div id="menu-content">
-    <button onclick="changeMode('time')">1. 車站到達時間</button>
-    <button onclick="changeMode('transfer')">2. 轉車路徑/車卡</button>
-    <button onclick="changeMode('lift')">3. 地面升降機位置</button>
+<h3>MTR 實時監測</h3>
+<div class="card">
+    <select id="line-select" onchange="updateStations()">
+        <option value="">選擇路綫</option>
+        <option value="ISL">港島綫</option>
+        <option value="SIL">南港島綫</option>
+        <option value="TWL">荃灣綫</option>
+        <option value="KTL">觀塘綫</option>
+        <option value="TKL">將軍澳綫</option>
+        <option value="EAL">東鐵綫</option>
+        <option value="TML">屯馬綫</option>
+        <option value="TCL">東涌綫</option>
+        <option value="AEL">機場快綫</option>
+    </select>
+    <select id="station-select"><option value="">選擇車站</option></select>
+    <button onclick="addPin()">+ 加入監測 (Pin)</button>
 </div>
 
-<div id="app" class="card">
-    <!-- 動態渲染區 -->
-</div>
+<div id="pins"></div>
 
 <script>
-// 補全資料庫
-const STATION_DB = {
-    "TIN": { name: "天后", lift: "月台尾(6卡)", suggest: "第 5-6 卡" },
-    "OCH": { name: "海洋公園", lift: "月台中央(3卡)", suggest: "第 3-4 卡" }
+const MTR_DATA = {
+    "ISL": { name: "港島綫", stations: { "KET":"堅尼地城", "HKU":"香港大學", "SYP":"西營盤", "SHW":"上環", "CEN":"中環", "ADM":"金鐘", "WAC":"灣仔", "CWB":"銅鑼灣", "TIN":"天后", "FOH":"炮台山", "NOP":"北角", "QUB":"鰂魚涌", "TAE":"太古", "SWH":"西灣河", "SKW":"筲箕灣", "CHW":"柴灣" } },
+    "SIL": { name: "南港島綫", stations: { "ADM":"金鐘", "OCH":"海洋公園", "WCH":"黃竹坑", "LET":"利東", "SOH":"海怡半島" } },
+    "TWL": { name: "荃灣綫", stations: { "CEN":"中環", "ADM":"金鐘", "TST":"尖沙咀", "JOR":"佐敦", "YMT":"油麻地", "MOK":"旺角", "PRE":"太子", "SSP":"深水埗", "CSW":"長沙灣", "LCK":"荔枝角", "MEF":"美孚", "LAK":"荔景", "KWF":"葵芳", "KWH":"葵興", "TWH":"大窩口", "TSW":"荃灣" } },
+    "KTL": { name: "觀塘綫", stations: { "WHA":"黃埔", "HOM":"何文田", "YMT":"油麻地", "MOK":"旺角", "PRE":"太子", "SKM":"石硤尾", "KOT":"九龍塘", "LOF":"樂富", "WTS":"黃大仙", "CHH":"鑽石山", "KOB":"九龍灣", "NTK":"牛頭角", "KWT":"觀塘", "LAT":"藍田", "YAT":"油塘", "TIK":"調景嶺" } }
 };
 
-let currentMode = 'time';
+let pins = JSON.parse(localStorage.getItem('mtr_pins')) || [];
 
-async function refreshData() {
-    if (currentMode !== 'time') return;
-    // 這裡放入原有的 API 請求邏輯，並確保使用 Math.max(0, ...) 處理時間
-}
-
-// 時間處理邏輯修正
-function formatTime(t) {
-    const diff = Math.floor((new Date(t.replace(/-/g, "/")) - new Date()) / 60000);
-    return diff <= 0 ? "已到達" : diff + " 分鐘";
-}
-
-function changeMode(m) {
-    currentMode = m;
-    const app = document.getElementById('app');
-    if (m === 'lift') {
-        app.innerHTML = "<h3>地面升降機指南</h3><p>天后站：B出口旁升降機。</p><p>海洋公園：海怡方向月台電梯。</p>";
-    } else if (m === 'transfer') {
-        app.innerHTML = "<h3>轉車建議</h3><p>請搜尋路線以獲取車卡建議。</p>";
-    } else {
-        app.innerHTML = "請選擇車站...";
+function updateStations() {
+    const line = document.getElementById('line-select').value;
+    const sel = document.getElementById('station-select');
+    sel.innerHTML = '<option value="">選擇車站</option>';
+    if(MTR_DATA[line]) {
+        for(let code in MTR_DATA[line].stations) {
+            sel.innerHTML += `<option value="${code}">${MTR_DATA[line].stations[code]}</option>`;
+        }
     }
-    document.getElementById('menu-content').style.display = 'none';
 }
 
-// 設定 30 秒自動刷新
-setInterval(refreshData, 30000);
+function addPin() {
+    const line = document.getElementById('line-select').value;
+    const sta = document.getElementById('station-select').value;
+    if(!line || !sta) return;
+    if(!pins.find(p => p.sta === sta)) {
+        pins.push({ line, sta, name: MTR_DATA[line].stations[sta] });
+        localStorage.setItem('mtr_pins', JSON.stringify(pins));
+        renderPins();
+    }
+}
+
+async function renderPins() {
+    const container = document.getElementById('pins');
+    // 不直接清空以減少閃爍，改為遍歷更新
+    for(let i=0; i<pins.length; i++) {
+        const p = pins[i];
+        let card = document.getElementById(`pin-${p.sta}`);
+        if(!card) {
+            container.innerHTML += `<div class="card" id="pin-${p.sta}"><strong>${p.name}</strong><div class="eta-content">讀取中...</div><button onclick="removePin(${i})" class="pin-btn">取消 Pin</button></div>`;
+            card = document.getElementById(`pin-${p.sta}`);
+        }
+        
+        try {
+            const res = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${p.line}&sta=${p.sta}`);
+            const json = await res.json();
+            let html = '';
+            if(json.status === 1 && json.data[`${p.line}-${p.sta}`]) {
+                const data = json.data[`${p.line}-${p.sta}`];
+                ['UP', 'DOWN'].forEach(dir => {
+                    if(data[dir] && data[dir][0]) {
+                        const diff = Math.floor((new Date(data[dir][0].time.replace(/-/g, "/")) - new Date()) / 60000);
+                        const timeText = diff <= 0 ? "已到達" : diff + " 分鐘";
+                        html += `<div class="eta-row"><span class="time-label">${dir === 'UP' ? '上行' : '下行'}</span> <span class="${diff <= 1 ? 'urgent' : ''}">${timeText}</span></div>`;
+                    }
+                });
+            } else {
+                html = '<div class="eta-row">暫無數據</div>';
+            }
+            card.querySelector('.eta-content').innerHTML = html;
+        } catch(e) { console.error(e); }
+    }
+}
+
+function removePin(idx) {
+    pins.splice(idx, 1);
+    localStorage.setItem('mtr_pins', JSON.stringify(pins));
+    location.reload();
+}
+
+// 每 15 秒執行一次
+setInterval(renderPins, 15000);
+renderPins();
 </script>
 </body>
 </html>
