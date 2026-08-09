@@ -225,13 +225,38 @@ button.action-btn:active {
   padding: 14px;
   margin-bottom: 10px;
 }
-.station-img {
-  width: 100%;
-  max-height: 200px;
-  object-fit: cover;
-  border-radius: 12px;
-  margin-top: 8px;
-  border: 2px solid #ebd7bc;
+
+/* 港鐵風格格仔路線顯示 */
+.route-grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+.route-step-box {
+  background: #ffffff;
+  border: 2px solid #dcd6cd;
+  border-radius: 14px;
+  padding: 12px 16px;
+  box-shadow: 0 3px 0 #e8ded1;
+}
+.route-step-header {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #8e7a68;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+.route-step-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.route-step-main {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #5a4536;
 }
 </style>
 </head>
@@ -245,8 +270,8 @@ button.action-btn:active {
 
 <div class="dropdown-menu" id="nav-menu">
   <button onclick="switchTab('tab-station')">🔍 功能一：尋找車站班次</button>
-  <button onclick="switchTab('tab-route')">🎯 功能二：尋找路線與月台𨋢口</button>
-  <button onclick="switchTab('tab-elevator')">🛗 功能三：各站閘內升降機與圖片</button>
+  <button onclick="switchTab('tab-route')">🎯 功能二：尋找路線與轉車格仔</button>
+  <button onclick="switchTab('tab-elevator')">🛗 功能三：各站閘內升降機指南</button>
 </div>
 
 <div class="section" id="pinned-section" style="display: none;">
@@ -280,9 +305,9 @@ button.action-btn:active {
   <button class="action-btn btn-pin" onclick="pinCurrentStation()">📌 Pin 實呢個站</button>
 </div>
 
-<!-- ================= 頁面二：尋找路線與最近𨋢口 ================= -->
+<!-- ================= 頁面二：尋找路線與格仔 ================= -->
 <div class="section tab-content" id="tab-route" style="display: none;">
-  <h2>🎯 功能二：尋找路線與月台𨋢口</h2>
+  <h2>🎯 功能二：尋找路線與轉車格仔</h2>
   
   <label>出發鐵路綫</label>
   <select id="src-line-select" onchange="updateStations('src-line-select', 'src-station-select')">
@@ -322,12 +347,12 @@ button.action-btn:active {
     <option value="">-- 請先選擇目的地鐵路綫 --</option>
   </select>
 
-  <button class="action-btn" onclick="calcRouteFromUI()">計算轉線與閘內𨋢口指南</button>
+  <button class="action-btn" onclick="calcRouteFromUI()">計算轉線格仔與𨋢口指南</button>
 </div>
 
 <!-- ================= 頁面三：升降機指南 ================= -->
 <div class="section tab-content" id="tab-elevator" style="display: none;">
-  <h2>🛗 功能三：各站閘內升降機與圖片</h2>
+  <h2>🛗 功能三：各站閘內升降機指南</h2>
   <label>選擇要查詢嘅車站</label>
   <select id="guide-station-select" onchange="showElevatorGuide()">
     <option value="">-- 請選擇車站 --</option>
@@ -335,14 +360,16 @@ button.action-btn:active {
     <option value="ADM">金鐘站</option>
     <option value="TST">尖沙咀站</option>
     <option value="MOK">旺角站</option>
+    <option value="PRE">太子站</option>
     <option value="KOT">九龍塘站</option>
     <option value="SKM">石硤尾站</option>
     <option value="CSW">長沙灣站</option>
+    <option value="WHA">黃埔站</option>
     <option value="TIN">天后站</option>
     <option value="OCH">海洋公園站</option>
   </select>
   <div id="elevator-guide-result" style="margin-top: 12px;">
-    <div class="loading">請選擇上方車站查看閘內𨋢口與位置圖</div>
+    <div class="loading">請選擇上方車站查看閘內𨋢口位置與地面升降機資訊</div>
   </div>
 </div>
 
@@ -372,52 +399,51 @@ for (let lineKey in mtrData) {
   }
 }
 
-// 閘內升降機與月台車卡位置詳細資料（含圖片範例）
+// 各站閘內升降機與地面升降機資訊（無圖片）
 const elevatorGuides = {
   SKM: { 
     name: "石硤尾站", 
-    insideLift: "月台中央（約第 3-4 卡）設有閘內升降機直達大堂。到達大堂後靠近 A 出口閘機直出地面。",
-    img: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400&auto=format&fit=crop&q=60"
+    desc: "• 閘內升降機：位於月台中央（約第 3-4 卡），直達大堂近 A 出口閘機。<br>• 註：並非所有出入口均設升降機直達地面，A 出口設有暢通易達升降機通往地面。"
   },
   CSW: { 
     name: "長沙灣站", 
-    insideLift: "建議於車頭（第 1 卡）上車，落車後轉步即見閘內升降機，直達大堂近 C1/C2 出口收費區內。",
-    img: "https://images.unsplash.com/photo-1517736996303-4e9476449190?w=400&auto=format&fit=crop&q=60"
+    desc: "• 閘內升降機：建議於車頭（第 1 卡）上車，落車後轉步即見閘內升降機直達大堂。<br>• 註：C1 及 C2 出口設有升降機直達地面。"
+  },
+  PRE: { 
+    name: "太子站", 
+    desc: "• 閘內升降機：觀塘綫及荃灣綫月台中段均設有升降機往返大堂。<br>• 註：轉線層設有無障礙通道，C 出口設有升降機往地面。"
   },
   CEN: { 
     name: "中環站", 
-    insideLift: "港島綫月台中段（第 4 卡）設有升降機通往大堂；轉乘荃灣綫請依藍色指示牌到中央轉線層。",
-    img: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=400&auto=format&fit=crop&q=60"
+    desc: "• 閘內升降機：港島綫月台中段（第 4 卡）設有升降機通往大堂。<br>• 註：部分地面出口（如 D 出口、A 出口）需配合站內其他升降機或中環置地廣場通道上地面。"
   },
   ADM: { 
     name: "金鐘站", 
-    insideLift: "四線超級轉車站：月台各層均設有大型垂直升降機（多位於月台中央及兩端），直達不同綫路轉線層及 E 出口大堂。",
-    img: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&auto=format&fit=crop&q=60"
+    desc: "• 閘內升降機：四線超級轉車站，各層月台中央及兩端均有大型垂直升降機。<br>• 註：E 出口及多個大型商場出口均設有升降機直達地面。"
   },
   TST: { 
     name: "尖沙咀站", 
-    insideLift: "月台中段設有升降機往返大堂，近 H 及 N 出口閘內範圍。",
-    img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&auto=format&fit=crop&q=60"
+    desc: "• 閘內升降機：月台中段設有升降機往返大堂，近 H 及 N 出口閘內。<br>• 註：H 出口（iSQUARE旁）設有升降機直達地面。"
   },
   MOK: { 
     name: "旺角站", 
-    insideLift: "觀塘綫/荃灣綫月台中央設有升降機，連接大堂近 E 出口閘內。",
-    img: "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?w=400&auto=format&fit=crop&q=60"
+    desc: "• 閘內升降機：觀塘綫/荃灣綫月台中央設有升降機連接大堂近 E 出口閘內。<br>• 註：E1 出口設有升降機直達地面。"
   },
   KOT: { 
     name: "九龍塘站", 
-    insideLift: "東鐵綫與觀塘綫轉線層及月台均設有暢通易達升降機，靠近 G 出口（又一城方向）閘內。",
-    img: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&auto=format&fit=crop&q=60"
+    desc: "• 閘內升降機：東鐵綫與觀塘綫轉線層及月台均設有升降機。<br>• 註：G 出口（又一城內）設有升降機直達地面。"
+  },
+  WHA: {
+    name: "黃埔站",
+    desc: "• 閘內升降機：月台兩端均設有升降機直達大堂。<br>• 註：A 及 B 出口均設有升降機直達地面。"
   },
   TIN: { 
     name: "天后站", 
-    insideLift: "月台尾段（約第 5 卡）設有升降機直達大堂，近 A 出口。",
-    img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&auto=format&fit=crop&q=60"
+    desc: "• 閘內升降機：月台尾段（約第 5 卡）設有升降機直達大堂近 A 出口。<br>• 註：A 出口設有升降機直達地面。"
   },
   OCH: { 
     name: "海洋公園站", 
-    insideLift: "月台中央設有升降機直達大堂收費區內，連接 A 出口行人天橋。",
-    img: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&auto=format&fit=crop&q=60"
+    desc: "• 閘內升降機：月台中央設有升降機直達大堂收費區內。<br>• 註：A 出口行人天橋設有升降機通往地面。"
   }
 };
 
@@ -674,15 +700,13 @@ async function calcRouteFromUI() {
   const srcName = mtrData[srcLine].stations[srcStation];
   const destName = mtrData[destLine].stations[destStation];
   resultTitle.textContent = `🎯 由 ${srcName} 去 ${destName}`;
-  etaResults.innerHTML = '<div class="loading">💬 正在分析轉線與月台𨋢口資訊...</div>';
+  etaResults.innerHTML = '<div class="loading">💬 正在計算港鐵 App 風格格仔路線...</div>';
 
   try {
     const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${srcLine}&sta=${srcStation}`);
     const data = await response.json();
     
-    // 取得目的地與出發站升降機指引
-    const destInfo = elevatorGuides[destStation] || { insideLift: "請留意站內暢通易達升降機指示牌。", img: "" };
-    const srcInfo = elevatorGuides[srcStation] || { insideLift: "月台設有升降機通往大堂。", img: "" };
+    const destInfo = elevatorGuides[destStation] || { desc: "• 請留意站內暢通易達升降機指示牌。" };
 
     if (data.status === 1 && data.data[`${srcLine}-${srcStation}`]) {
       const schedule = data.data[`${srcLine}-${srcStation}`];
@@ -707,39 +731,70 @@ async function calcRouteFromUI() {
       let timeDisplay = formatDiffText(diffSecs);
       let imminentClass = (diffSecs <= 15 && diffSecs >= -15) ? "imminent" : "";
 
-      let transferStepHtml = "";
-      if (srcLine !== destLine) {
-        transferStepHtml = `
-          <div style="margin-top:8px; font-size:0.9rem; color:#b45309; background:#fef3c7; padding:10px; border-radius:12px; border:2px solid #fde68a;">
-            🔄 <b>轉線指引（參考港鐵 App）：</b><br>
-            1. 建議於 <b>金鐘站</b> 或 <b>旺角站</b> 落車。<br>
-            2. 按照站內「轉綫」指示牌，平步或乘扶手電梯前往 <b>${mtrData[destLine].name}</b> 月台轉乘。
+      let gridHtml = "";
+      if (srcLine !== destLine && !(srcLine === "KTL" && destLine === "TWL")) {
+        // 一般轉線情況示範
+        gridHtml = `
+          <div class="route-grid-container">
+            <div class="route-step-box">
+              <div class="route-step-header"><span>第一格：乘搭第一程車</span><span>月台 ${fastestTrain.plat}</span></div>
+              <div class="route-step-body">
+                <div class="route-step-main">${srcName} ➡️ 往 ${trainDestName} 方向</div>
+                <div class="eta-time ${imminentClass}">${timeDisplay}</div>
+              </div>
+            </div>
+            <div class="route-step-box">
+              <div class="route-step-header"><span>第二格：轉乘 ${mtrData[destLine].name}</span><span>轉車站</span></div>
+              <div class="route-step-body">
+                <div class="route-step-main">於主要轉車站落車，轉乘往 ${destName} 方向</div>
+                <div style="font-size:0.85rem; color:#8e7a68;">順暢轉線</div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (srcLine === "KTL" && destLine === "TWL" && srcStation === "WTS" && destStation === "SSP") {
+        // 特別針對 黃大仙去深水埗 (經太子轉車) 嘅精準格仔示範
+        gridHtml = `
+          <div class="route-grid-container">
+            <div class="route-step-box">
+              <div class="route-step-header"><span>第一格：由黃大仙出發</span><span>月台 1</span></div>
+              <div class="route-step-body">
+                <div class="route-step-main">黃大仙 ➡️ 往黃埔方向</div>
+                <div class="eta-time ${imminentClass}">${timeDisplay}</div>
+              </div>
+            </div>
+            <div class="route-step-box">
+              <div class="route-step-header"><span>第二格：喺太子站轉線</span><span>太子站轉線層</span></div>
+              <div class="route-step-body">
+                <div class="route-step-main">太子站 ➡️ 轉乘荃灣綫往荃灣方向</div>
+                <div style="font-size:0.85rem; color:#4caf50; font-weight:bold;">最快轉車</div>
+              </div>
+            </div>
           </div>
         `;
       } else {
-        transferStepHtml = `
-          <div style="margin-top:8px; font-size:0.9rem; color:#047857; background:#d1fae5; padding:10px; border-radius:12px; border:2px solid #a7f3d0;">
-            ✨ <b>直達路線：</b>無需轉線，直接坐到 ${destName} 落車！
+        // 一般跨線或預設情況
+        gridHtml = `
+          <div class="route-grid-container">
+            <div class="route-step-box">
+              <div class="route-step-header"><span>第一格：出發班次</span><span>月台 ${fastestTrain.plat}</span></div>
+              <div class="route-step-body">
+                <div class="route-step-main">${srcName} ➡️ 往 ${trainDestName} 方向</div>
+                <div class="eta-time ${imminentClass}">${timeDisplay}</div>
+              </div>
+            </div>
           </div>
         `;
       }
 
       etaResults.innerHTML = `
-        <div class="dir-container" style="display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div style="font-weight:bold; font-size:1rem; color:#614c3b; margin-bottom:4px;">推薦乘搭月台 ${fastestTrain.plat}</div>
-            <div style="font-size:0.85rem; color:#8e7a68;">往 ${trainDestName} 方向 (預定 ${fastestTrain.time.substring(11, 16)})</div>
+        ${gridHtml}
+        <div class="guide-card" style="margin-top:14px;">
+          <div style="font-weight:bold; margin-bottom:6px; color:#5a4536;">🛗 車卡與升降機指引：</div>
+          <div style="font-size:0.85rem; line-height:1.6; color:#6e5543;">
+            • <b>上車建議：</b>建議於列車中段（約第 3-4 卡）上車，方便落車後轉線或直達升降機。<br>
+            • <b>目的地（${destName}）升降機：</b><br>${destInfo.desc}
           </div>
-          <div class="eta-time ${imminentClass}">${timeDisplay}</div>
-        </div>
-        ${transferStepHtml}
-        <div class="guide-card" style="margin-top:12px;">
-          <div style="font-weight:bold; margin-bottom:4px;">🛗 閘內升降機與落車貼士：</div>
-          <div style="font-size:0.85rem; line-height:1.5; color:#6e5543;">
-            • <b>出發站（${srcName}）：</b>${srcInfo.insideLift}<br>
-            • <b>目的地（${destName}）：</b>${destInfo.insideLift}
-          </div>
-          ${destInfo.img ? `<img src="${destInfo.img}" class="station-img" alt="車站升降機位置圖">` : ''}
         </div>
       `;
     } else {
@@ -754,15 +809,14 @@ function showElevatorGuide() {
   const code = document.getElementById("guide-station-select").value;
   const container = document.getElementById("elevator-guide-result");
   if (!code || !elevatorGuides[code]) {
-    container.innerHTML = '<div class="loading">此車站暫未有詳細閘內升降機說明或圖片。</div>';
+    container.innerHTML = '<div class="loading">此車站暫未有詳細升降機說明。</div>';
     return;
   }
   const info = elevatorGuides[code];
   container.innerHTML = `
     <div class="guide-card">
-      <div style="font-weight:bold; font-size:1.05rem; margin-bottom:6px; color:#5a4536;">🏢 ${info.name} 閘內升降機指南</div>
-      <div style="font-size:0.9rem; line-height:1.5; color:#6e5543; margin-bottom:8px;">${info.insideLift}</div>
-      ${info.img ? `<img src="${info.img}" class="station-img" alt="車站升降機位置圖">` : ''}
+      <div style="font-weight:bold; font-size:1.05rem; margin-bottom:6px; color:#5a4536;">🏢 ${info.name} 升降機指南</div>
+      <div style="font-size:0.9rem; line-height:1.6; color:#6e5543;">${info.desc}</div>
     </div>
   `;
 }
