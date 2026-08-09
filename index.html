@@ -378,9 +378,9 @@
             <div class="card">
                 <h3>🔍 搜尋全港車站候車時間</h3>
                 
-                <!-- 新增：直接打字搵站 -->
+                <!-- 直接打字搵站 -->
                 <label for="stationSearchInput">直接打字搵站：</label>
-                <input type="text" id="stationSearchInput" placeholder="例如：金鐘、旺角、中環..." oninput="filterStationsByText(this.value)">
+                <input type="text" id="stationSearchInput" placeholder="例如：香港、奧運、東涌..." oninput="filterStationsByText(this.value)">
                 <div id="searchSuggestions" class="search-suggestions"></div>
 
                 <label for="lineSelect">選擇鐵路綫：</label>
@@ -390,10 +390,10 @@
                     <option value="ISL">港島綫 (ISL)</option>
                     <option value="KTL">觀塘綫 (KTL)</option>
                     <option value="SIL">南港島綫 (SIL)</option>
-                    <option value="TKE">將軍澳綫 (TKE)</option>
-                    <option value="EAL">東鐵綫 (EAL)</option>
-                    <option value="TML">屯馬綫 (TML)</option>
+                    <option value="TKL">將軍澳綫 (TKL)</option>
                     <option value="TCL">東涌綫 (TCL)</option>
+                    <option value="TML">屯馬綫 (TML)</option>
+                    <option value="EAL">東鐵綫 (EAL)</option>
                 </select>
 
                 <label for="stationSelect">選擇車站：</label>
@@ -481,6 +481,23 @@
                 { code: "LAT", name: "藍田 (Lam Tin)" }, { code: "YAT", name: "油塘 (Yau Tong)" },
                 { code: "TIK", name: "調景嶺 (Tiu Keng Leng)" }
             ],
+            "SIL": [
+                { code: "ADM", name: "金鐘 (Admiralty)" }, { code: "OCP", name: "海洋公園 (Ocean Park)" },
+                { code: "WCH", name: "黃竹坑 (Wong Chuk Hang)" }, { code: "LET", name: "利東 (Lei Tung)" },
+                { code: "SOH", name: "海怡半島 (South Horizons)" }
+            ],
+            "TKL": [
+                { code: "NOP", name: "北角 (North Point)" }, { code: "QUB", name: "鰂魚涌 (Quarry Bay)" },
+                { code: "YAT", name: "油塘 (Yau Tong)" }, { code: "TIK", name: "調景嶺 (Tiu Keng Leng)" },
+                { code: "TKO", name: "將軍澳 (Tseung Kwan O)" }, { code: "HAH", name: "坑口 (Hang Hau)" },
+                { code: "POA", name: "寶琳 (Po Lam)" }, { code: "LHP", name: "康城 (LOHAS Park)" }
+            ],
+            "TCL": [
+                { code: "HOK", name: "香港 (Hong Kong)" }, { code: "KOW", name: "九龍 (Kowloon)" },
+                { code: "OLY", name: "奧運 (Olympic)" }, { code: "NAC", name: "南昌 (Nam Cheong)" },
+                { code: "LAK", name: "荔景 (Lai King)" }, { code: "TSY", name: "青衣 (Tsing Yi)" },
+                { code: "SUN", name: "欣澳 (Sunny Bay)" }, { code: "TUC", name: "東涌 (Tung Chung)" }
+            ],
             "TML": [
                 { code: "WKS", name: "烏溪沙 (Wu Kai Sha)" }, { code: "MOS", name: "馬鞍山 (Ma On Shan)" },
                 { code: "HEO", name: "恆安 (Heng On)" }, { code: "TSH", name: "大水坑 (Tai Shui Hang)" },
@@ -489,7 +506,7 @@
                 { code: "TAW", name: "大圍 (Tai Wai)" }, { code: "HIK", name: "顯徑 (Hin Keng)" },
                 { code: "DIH", name: "鑽石山 (Diamond Hill)" }, { code: "KAT", name: "啟德 (Kai Tak)" },
                 { code: "SUW", name: "宋皇臺 (Sung Wong Toi)" }, { code: "TKW", name: "土瓜灣 (To Kwa Wan)" },
-                { code: "HOM", name: "何文田 (Ho Man Tin)" }, { code: "HUH", name: "紅磡 (Hung Hom)" },
+                { code: "HOM", name: "何文田 (Ho Man Tin)" }, { code: "HUH", name: "紅磡 (Hung Hum)" },
                 { code: "ETS", name: "尖東 (East Tsim Sha Tsui)" }, { code: "AUS", name: "柯士甸 (Austin)" },
                 { code: "NAC", name: "南昌 (Nam Cheong)" }, { code: "MEF", name: "美孚 (Mei Foo)" },
                 { code: "TWW", name: "荃灣西 (Tsuen Wan West)" }, { code: "KSR", name: "錦上路 (Kam Sheung Road)" },
@@ -499,7 +516,7 @@
             ],
             "EAL": [
                 { code: "ADM", name: "金鐘 (Admiralty)" }, { code: "EXC", name: "會展 (Exhibition Centre)" },
-                { code: "HUH", name: "紅磡 (Hung Hom)" }, { code: "MKK", name: "旺角東 (Mong Kok East)" },
+                { code: "HUH", name: "紅磡 (Hung Hum)" }, { code: "MKK", name: "旺角東 (Mong Kok East)" },
                 { code: "KOT", name: "九龍塘 (Kowloon Tong)" }, { code: "SHT", name: "沙田 (Sha Tin)" },
                 { code: "FTN", name: "火炭 (Fo Tan)" }, { code: "RAC", name: "馬場 (Racecourse)" },
                 { code: "UNI", name: "大學 (University)" }, { code: "TAP", name: "大埔墟 (Tai Po Market)" },
@@ -544,7 +561,7 @@
         function addPin(line, stationCode, stationFullName) {
             const newId = `${line}-${stationCode}`;
             if (!pinnedList.some(item => item.id === newId)) {
-                let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "TML": "屯馬綫", "EAL": "東鐵綫" };
+                let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "SIL": "南港島綫", "TKL": "將軍澳綫", "TCL": "東涌綫", "TML": "屯馬綫", "EAL": "東鐵綫" };
                 let lineName = lineNameMap[line] || line;
                 pinnedList.push({ id: newId, line: line, station: stationCode, name: `${stationFullName} - ${lineName}` });
                 alert("⭐ 成功加入釘選站！");
@@ -569,7 +586,6 @@
             }
         }
 
-        /* 💡 新增：處理直接打字搜尋及過濾車站功能 */
         function filterStationsByText(keyword) {
             const suggestionsContainer = document.getElementById('searchSuggestions');
             suggestionsContainer.innerHTML = '';
@@ -580,12 +596,11 @@
             }
 
             let matches = [];
-            const lineNames = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "TML": "屯馬綫", "EAL": "東鐵綫" };
+            const lineNames = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "SIL": "南港島綫", "TKL": "將軍澳綫", "TCL": "東涌綫", "TML": "屯馬綫", "EAL": "東鐵綫" };
 
             for (let line in mtrDatabase) {
                 mtrDatabase[line].forEach(station => {
                     if (station.name.toLowerCase().includes(keyword.toLowerCase())) {
-                        // 避免同一條綫重複加（如果有的話），記錄低
                         matches.push({
                             line: line,
                             lineName: lineNames[line] || line,
@@ -603,11 +618,10 @@
                     div.className = 'suggestion-item';
                     div.innerText = `${item.name} [${item.lineName}]`;
                     div.onclick = function() {
-                        // 自動幫使用者揀好線路同車站
                         document.getElementById('lineSelect').value = item.line;
                         updateStationOptions();
                         document.getElementById('stationSelect').value = item.code;
-                        document.getElementById('stationSearchInput').value = item.name.split(' ')[0]; // 填入簡稱
+                        document.getElementById('stationSearchInput').value = item.name.split(' ')[0];
                         suggestionsContainer.style.display = 'none';
                     };
                     suggestionsContainer.appendChild(div);
@@ -621,7 +635,9 @@
             const destMap = {
                 "CEN": "中環", "TSW": "荃灣", "CHW": "柴灣", "KET": "堅尼地城",
                 "NOP": "北角", "QUB": "鰂魚涌", "WHA": "黃埔", "TIK": "調景嶺",
-                "WKS": "烏溪沙", "TUM": "屯門", "LOW": "羅湖", "LMC": "落馬洲"
+                "WKS": "烏溪沙", "TUM": "屯門", "LOW": "羅湖", "LMC": "落馬洲",
+                "SOH": "海怡半島", "ADM": "金鐘", "POA": "寶琳", "LHP": "康城",
+                "HOK": "香港", "TUC": "東涌", "SUN": "欣澳"
             };
             return destMap[destCode] || destCode;
         }
