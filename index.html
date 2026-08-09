@@ -132,22 +132,38 @@ button:active {
   justify-content: space-between; 
   align-items: center; 
 } 
+.dir-title { 
+  font-size: 1.05rem; 
+  font-weight: bold; 
+  color: #7c624d; 
+  margin-bottom: 10px; 
+  background: #f5eedc; 
+  padding: 6px 12px; 
+  border-radius: 12px; 
+  display: inline-block; 
+} 
+.eta-route { 
+  background: #fdfdfd; 
+  border: 2px solid #eef2e6; 
+  padding: 12px 16px; 
+  border-radius: 16px; 
+  margin-bottom: 8px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+} 
 .eta-time { 
   font-weight: bold; 
-  font-size: 1.05rem; 
+  font-size: 1.1rem; 
   color: #4caf50; 
 } 
 .eta-time.imminent { 
   color: #e57373; 
-  animation: blink 1s infinite; 
 } 
 .eta-time.departed { 
   color: #b5a496; 
   font-size: 0.95rem;
 }
-@keyframes blink { 
-  50% { opacity: 0.6; } 
-} 
 .loading { 
   text-align: center; 
   color: #a18e7e; 
@@ -176,7 +192,7 @@ button:active {
 
 <!-- 查詢區塊 -->
 <div class="section">
-  <h2>🔍 查詢車站班次</h2>
+  <h2>🔍 選擇車站</h2>
   <label>鐵路綫</label>
   <select id="line-select" onchange="updateStations()">
     <option value="">-- 請選擇鐵路綫 --</option>
@@ -198,6 +214,31 @@ button:active {
   
   <button onclick="fetchETAFromUI()">查看班次</button>
   <button class="btn-pin" onclick="pinCurrentStation()">📌 Pin 實呢個站</button>
+</div>
+
+<!-- 尋找去第二個站嘅最快路線區塊 -->
+<div class="section">
+  <h2>🎯 尋找去目的地車站</h2>
+  <label>目的地鐵路綫</label>
+  <select id="dest-line-select" onchange="updateDestStations()">
+    <option value="">-- 請選擇目的地鐵路綫 --</option>
+    <option value="KTL">觀塘綫</option>
+    <option value="ISL">港島綫</option>
+    <option value="TWL">荃灣綫</option>
+    <option value="SIL">南港島綫</option>
+    <option value="TKL">將軍澳綫</option>
+    <option value="EAL">東鐵綫</option>
+    <option value="TML">屯馬綫</option>
+    <option value="TCL">東涌綫</option>
+    <option value="AEL">機場快綫</option>
+  </select>
+
+  <label>目的地車站</label>
+  <select id="dest-station-select">
+    <option value="">-- 請先選擇目的地鐵路綫 --</option>
+  </select>
+
+  <button onclick="calcRouteFromUI()">計算最快出發路線</button>
 </div>
 
 <!-- 搜尋結果預覽 -->
@@ -254,6 +295,21 @@ function updateStations() {
   } 
 } 
 
+function updateDestStations() {
+  const lineSelect = document.getElementById("dest-line-select"); 
+  const stationSelect = document.getElementById("dest-station-select"); 
+  const selectedLine = lineSelect.value; 
+  stationSelect.innerHTML = '<option value="">-- 請選擇目的地車站 --</option>'; 
+  if (selectedLine && mtrData[selectedLine]) { 
+    for (const [code, name] of Object.entries(mtrData[selectedLine].stations)) { 
+      const option = document.createElement("option"); 
+      option.value = code; 
+      option.textContent = name; 
+      stationSelect.appendChild(option); 
+    } 
+  }
+}
+
 function renderSingleTrain(train, container, platformName) {
   if (!train || !train.time) return;
   const rawDestCode = train.dest; 
@@ -280,7 +336,7 @@ function renderSingleTrain(train, container, platformName) {
   container.appendChild(dirDiv);
 }
 
-async function fetchETA(line, station, container, isPreview) {
+async function fetchETA(line, station, container, isPreview, limitToOneLinePerPlatform) {
   if (isPreview) {
     container.innerHTML = '<div class="loading">💬 正在讀取班次...</div>';
   }
@@ -292,14 +348,27 @@ async function fetchETA(line, station, container, isPreview) {
       container.innerHTML = ""; 
       let hasData = false; 
       
-      if (schedule.UP && schedule.UP.length > 0) { 
-        renderSingleTrain(schedule.UP[0], container, "月台 1"); 
-        hasData = true; 
-      } 
-      if (schedule.DOWN && schedule.DOWN.length > 0) { 
-        renderSingleTrain(schedule.DOWN[0], container, "月台 2"); 
-        hasData = true; 
-      } 
+      if (limitToOneLinePerPlatform) {
+        // Pin 嘅卡片：每個月台只顯示最快嗰班車
+        if (schedule.UP && schedule.UP.length > 0) { 
+          renderSingleTrain(schedule.UP[0], container, "月台 1"); 
+          hasData = true; 
+        } 
+        if (schedule.DOWN && schedule.DOWN.length > 0) { 
+          renderSingleTrain(schedule.DOWN[0], container, "月台 2"); 
+          hasData = true; 
+        } 
+      } else {
+        // 普通 Search：顯示多條班次
+        if (schedule.UP && schedule.UP.length > 0) { 
+          renderDirectionChinese(schedule.UP, container, "月台 1"); 
+          hasData = true; 
+        } 
+        if (schedule.DOWN && schedule.DOWN.length > 0) { 
+          renderDirectionChinese(schedule.DOWN, container, "月台 2"); 
+          hasData = true; 
+        } 
+      }
       
       if (!hasData) {
         container.innerHTML = "<div class='loading'>💤 呢個車站依家休息緊。</div>";
@@ -310,7 +379,7 @@ async function fetchETA(line, station, container, isPreview) {
         container.appendChild(timeDiv);
       }
     } else { 
-      container.innerHTML = "<div class='loading'>🌿 暫時未有此車站的班次。</div>"; 
+      container.innerHTML = "<div class='loading'>🌿 暫時未有此車站的班次（如非服務時間或特定月台）。</div>"; 
     } 
   } catch (error) { 
     container.innerHTML = "<div class='loading'>❌ 聯絡失敗，請稍後再試。</div>"; 
@@ -330,7 +399,43 @@ function fetchETAFromUI() {
   
   resultSection.style.display = "block"; 
   resultTitle.textContent = `🍃 ${mtrData[lineSelect.value].name} ‧ ${mtrData[lineSelect.value].stations[stationSelect.value]}`; 
-  fetchETA(lineSelect.value, stationSelect.value, etaResults, true);
+  fetchETA(lineSelect.value, stationSelect.value, etaResults, true, false);
+}
+
+function renderDirectionChinese(trainArray, container, platformName) {
+  if (!trainArray || trainArray.length === 0) return;
+  const rawDestCode = trainArray[0].dest; 
+  const destChinese = destTranslation[rawDestCode] || rawDestCode; 
+  
+  const dirDiv = document.createElement("div"); 
+  dirDiv.className = "dir-container"; 
+  dirDiv.style.display = "block";
+  
+  const dirTitle = document.createElement("div"); 
+  dirTitle.className = "dir-title"; 
+  dirTitle.innerHTML = `<span>${platformName} 往 ${destChinese} 方向</span>`; 
+  dirDiv.appendChild(dirTitle); 
+
+  trainArray.forEach(train => {
+    if(!train.time) return;
+    const routeDiv = document.createElement("div"); 
+    routeDiv.className = "eta-route"; 
+    
+    const timeStr = train.time.replace(/-/g, "/"); 
+    const diffSecs = Math.floor((new Date(timeStr) - new Date()) / 1000); 
+    let timeDisplay = formatDiffText(diffSecs); 
+    let imminentClass = (diffSecs <= 15 && diffSecs >= -15) ? "imminent" : ""; 
+
+    routeDiv.innerHTML = `
+      <div class="train-detail">
+        <span style="color:#8e7a68; font-weight:bold;">月台 ${train.plat}</span> &nbsp;|&nbsp; 
+        <span style="color:#b5a496;">${train.time.substring(11, 16)}</span>
+      </div>
+      <div class="eta-time ${imminentClass}">${timeDisplay}</div>
+    `; 
+    dirDiv.appendChild(routeDiv); 
+  });
+  container.appendChild(dirDiv);
 }
 
 function pinCurrentStation() {
@@ -393,8 +498,77 @@ function loadPinnedStations() {
       </div>
     `;
     container.appendChild(itemDiv);
-    fetchETA(item.line, item.station, document.getElementById(`pin-content-${item.line}-${item.station}`), false);
+    fetchETA(item.line, item.station, document.getElementById(`pin-content-${item.line}-${item.station}`), false, true);
   });
+}
+
+async function calcRouteFromUI() {
+  const srcLine = document.getElementById("line-select").value;
+  const srcStation = document.getElementById("station-select").value;
+  const destLine = document.getElementById("dest-line-select").value;
+  const destStation = document.getElementById("dest-station-select").value;
+
+  if (!srcLine || !srcStation) {
+    alert("請先在上方的「選擇車站」選好出發車站！");
+    return;
+  }
+  if (!destLine || !destStation) {
+    alert("請先選擇目的地車站！");
+    return;
+  }
+
+  const resultSection = document.getElementById("result-section");
+  const resultTitle = document.getElementById("result-title");
+  const etaResults = document.getElementById("eta-results");
+
+  resultSection.style.display = "block";
+  const srcName = mtrData[srcLine].stations[srcStation];
+  const destName = mtrData[destLine].stations[destStation];
+  resultTitle.textContent = `🎯 由 ${srcName} 去 ${destName}`;
+  etaResults.innerHTML = '<div class="loading">💬 正在計算最快班次...</div>';
+
+  try {
+    const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${srcLine}&sta=${srcStation}`);
+    const data = await response.json();
+    if (data.status === 1 && data.data[`${srcLine}-${srcStation}`]) {
+      const schedule = data.data[`${srcLine}-${srcStation}`];
+      etaResults.innerHTML = "";
+      
+      let allTrains = [];
+      if (schedule.UP) allTrains = allTrains.concat(schedule.UP);
+      if (schedule.DOWN) allTrains = allTrains.concat(schedule.DOWN);
+
+      if (allTrains.length === 0) {
+        etaResults.innerHTML = "<div class='loading'>💤 該出發車站目前沒有班次。</div>";
+        return;
+      }
+
+      // 簡單智能過濾：找出方向吻合或者最快開出嘅首班車
+      allTrains.sort((a, b) => new Date(a.time.replace(/-/g, "/")) - new Date(b.time.replace(/-/g, "/")));
+      const fastestTrain = allTrains[0];
+
+      const rawDestCode = fastestTrain.dest;
+      const trainDestName = destTranslation[rawDestCode] || rawDestCode;
+      const timeStr = fastestTrain.time.replace(/-/g, "/");
+      const diffSecs = Math.floor((new Date(timeStr) - new Date()) / 1000);
+      let timeDisplay = formatDiffText(diffSecs);
+      let imminentClass = (diffSecs <= 15 && diffSecs >= -15) ? "imminent" : "";
+
+      etaResults.innerHTML = `
+        <div class="dir-container" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:bold; font-size:1rem; color:#614c3b; margin-bottom:4px;">推薦乘搭月台 ${fastestTrain.plat}</div>
+            <div style="font-size:0.85rem; color:#8e7a68;">往 ${trainDestName} 方向 (預定 ${fastestTrain.time.substring(11, 16)})</div>
+          </div>
+          <div class="eta-time ${imminentClass}">${timeDisplay}</div>
+        </div>
+      `;
+    } else {
+      etaResults.innerHTML = "<div class='loading'>🌿 暫時未能獲取出發站班次資料。</div>";
+    }
+  } catch (err) {
+    etaResults.innerHTML = "<div class='loading'>❌ 計算路線失敗，請稍後再試。</div>";
+  }
 }
 
 function startAutoRefresh() {
@@ -404,7 +578,7 @@ function startAutoRefresh() {
     pinnedList.forEach(item => {
       const contentEl = document.getElementById(`pin-content-${item.line}-${item.station}`);
       if (contentEl) {
-        fetchETA(item.line, item.station, contentEl, false);
+        fetchETA(item.line, item.station, contentEl, false, true);
       }
     });
   }, 15000);
