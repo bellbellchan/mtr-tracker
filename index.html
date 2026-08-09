@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MTR候車時間</title>
+<style>
+:root { --bg-color: #fbf9f4; --card-bg: #ffffff; --font-color: #6e5543; --primary-green: #78c8a0; --border-color: #e8ded1; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--font-color); }
+body { background-color: var(--bg-color); padding: 16px; max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
+header { text-align: center; padding: 20px 0; background-color: var(--primary-green); border: 4px solid #61b38a; border-radius: 24px; margin-bottom: 16px; box-shadow: 0 6px 0 #549f7a; }
+header h1 { font-size: 1.5rem; color: white; text-shadow: 2px 2px 0px #549f7a; letter-spacing: 2px; }
+h2 { font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; color: #5a4536; }
+.section { background: var(--card-bg); border: 3px solid var(--border-color); border-radius: 24px; padding: 18px; margin-bottom: 18px; box-shadow: 0 4px 0 var(--border-color); }
+label { display: block; font-size: 0.85rem; font-weight: bold; color: #a18e7e; margin-bottom: 6px; }
+select { width: 100%; padding: 14px; border: 2px solid var(--border-color); border-radius: 16px; font-size: 1rem; margin-bottom: 14px; background-color: #fcfbfa; font-weight: bold; outline: none; }
+button { width: 100%; padding: 14px; background-color: var(--primary-green); color: white; border: none; border-radius: 18px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #549f7a; text-shadow: 1px 1px 0px #549f7a; }
+button:active { transform: translateY(2px); box-shadow: 0 2px 0 #549f7a; }
+.dir-container { margin-top: 16px; padding-bottom: 8px; }
+.dir-title { font-size: 1.05rem; font-weight: bold; color: #7c624d; margin-bottom: 10px; background: #f5eedc; padding: 6px 12px; border-radius: 12px; display: inline-block; }
+.eta-route { background: #fdfdfd; border: 2px solid #eef2e6; padding: 12px 16px; border-radius: 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.eta-time { font-weight: bold; font-size: 1.1rem; color: #4caf50; }
+.eta-time.imminent { color: #e57373; animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0.6; } }
+.loading { text-align: center; color: #a18e7e; padding: 20px 0; font-weight: bold; }
+</style>
+</head>
+<body>
+<header>
+<h1>MTR候車時間</h1>
+</header>
+<div class="section">
+<h2>🔍 選擇車站</h2>
+<label>鐵路綫</label>
+<select id="line-select" onchange="updateStations()">
+<option value="">-- 請選擇鐵路綫 --</option>
+<option value="KTL">觀塘綫</option>
+<option value="ISL">港島綫</option>
+<option value="TWL">荃灣綫</option>
+<option value="SIL">南港島綫</option>
+<option value="TKL">將軍澳綫</option>
+<option value="EAL">東鐵綫</option>
+<option value="TML">屯馬綫</option>
+<option value="TCL">東涌綫</option>
+<option value="AEL">機場快綫</option>
+</select>
+<label>車站</label>
+<select id="station-select">
+<option value="">-- 請先選擇鐵路綫 --</option>
+</select>
+<button onclick="fetchETAFromUI()">查看班次</button>
+</div>
+<div class="section" id="result-section" style="display: none;">
+<h2 id="result-title">班次時間</h2>
+<div id="eta-results"></div>
+</div>
+<script>
+const mtrData = { KTL: { name: "觀塘綫", stations: { WHA:"黃埔", HOM:"何文田", YMT:"油麻地", MOK:"旺角", PRE:"太子", SKM:"石硤尾", KOT:"九龍塘", LOF:"樂富", WTS:"黃大仙", CHH:"鑽石山", KOB:"九龍灣", NTK:"牛頭角", KWT:"觀塘", LAT:"藍田", YAT:"油塘", TIK:"調景嶺" } }, ISL: { name: "港島綫", stations: { KET:"堅尼地城", HKU:"香港大學", SYP:"西營盤", SHW:"上環", CEN:"中環", ADM:"金鐘", WAC:"灣仔", CWB:"銅鑼灣", TIN:"天后", FOH:"炮台山", NOP:"北角", QUB:"鰂魚涌", TAE:"太古", SWH:"西灣河", SKW:"筲箕灣", CHW:"柴灣" } }, TWL: { name: "荃灣綫", stations: { CEN:"中環", ADM:"金鐘", TST:"尖沙咀", JOR:"佐敦", YMT:"油麻地", MOK:"旺角", PRE:"太子", SSP:"深水埗", CSW:"長沙灣", LCK:"荔枝角", MEF:"美孚", LAK:"荔景", KWF:"葵芳", KWH:"葵興", TWH:"大窩口", TSW:"荃灣" } }, SIL: { name: "南港島綫", stations: { ADM:"金鐘", OCH:"海洋公園", WCH:"黃竹坑", LET:"利東", SOH:"海怡半島" } }, TKL: { name: "將軍澳綫", stations: { NOP:"北角", QUB:"鰂魚涌", YAT:"油塘", TIK:"調景嶺", TKO:"將軍澳", LHP:"康城", KHA:"坑口", POA:"寶琳" } }, EAL: { name: "東鐵綫", stations: { ADM:"金鐘", EXC:"會展", HUH:"紅磡", MKK:"旺角東", KOT:"九龍塘", TAW:"大圍", SHT:"沙田", FOT:"火炭", RAC:"馬場", UNI:"大學", TAP:"大埔墟", TWO:"太和", FAN:"粉嶺", SHS:"上水", LOW:"落馬洲", LMC:"落馬洲" } }, TML: { name: "屯馬綫", stations: { TUM:"屯門", SIH:"兆康", TIS:"天水圍", LFS:"朗屏", YUL:"元朗", KSR:"錦上路", TWW:"荃灣西", MEF:"美孚", NAC:"南昌", OLY:"奧運", KOW:"九龍", AUS:"柯士甸", ETS:"尖東", HOM:"何文田", TKW:"土瓜灣", SUW:"宋皇臺", CKW:"啟德", DIH:"鑽石山", HIK:"顯徑", TAW:"大圍", CKO:"車公廟", SHM:"沙田圍", CIO:"第一城", STW:"石門", TSH:"大水坑", HEO:"恆安", MOS:"馬鞍山", WKS:"烏溪沙" } }, TCL: { name: "東涌綫", stations: { HOK:"香港", KOW:"九龍", OLY:"奧運", NAC:"南昌", LAK:"荔景", TSY:"青衣", SUN:"欣澳", TUC:"東涌" } }, AEL: { name: "機場快綫", stations: { HOK:"香港", KOW:"九龍", TSY:"青衣", AIR:"機場", AWE:"博覽館" } } }; const destTranslation = { "WHA": "黃埔", "TIK": "調景嶺", "CHW": "柴灣", "KET": "堅尼地城", "CEN": "中環", "TSW": "荃灣", "SOH": "海怡半島", "ADM": "金鐘", "POA": "寶琳", "LHP": "康城", "NOP": "北角", "LOW": "落馬洲", "LMC": "落馬洲", "SHS": "上水", "TUM": "屯門", "WKS": "烏溪沙", "HOK": "香港", "TUC": "東涌", "AIR": "機場", "AWE": "博覽館", "KWT": "觀塘", "YMT": "油麻地", "HUH": "紅磡", "MOK": "旺角", "TAW": "大圍", "SHT": "沙田", "TAP": "大埔墟", "FOT": "火炭", "NAC": "南昌", "TSY": "青衣" }; function formatDiffText(diffMins) { if (diffMins === 0) return "即將到站 🎈"; if (diffMins >= 60) { return `${Math.floor(diffMins / 60)} 小時 ${diffMins % 60} 分鐘`; } return `${diffMins} 分鐘`; } function updateStations() { const lineSelect = document.getElementById("line-select"); const stationSelect = document.getElementById("station-select"); const selectedLine = lineSelect.value; stationSelect.innerHTML = '<option value="">-- 請選擇車站 --</option>'; if (selectedLine && mtrData[selectedLine]) { for (const [code, name] of Object.entries(mtrData[selectedLine].stations)) { const option = document.createElement("option"); option.value = code; option.textContent = name; stationSelect.appendChild(option); } } } async function fetchETA(line, station, stationName, lineName) { const resultSection = document.getElementById("result-section"); const etaResults = document.getElementById("eta-results"); const resultTitle = document.getElementById("result-title"); resultSection.style.display = "block"; resultTitle.textContent = `${lineName} ‧ ${stationName}`; etaResults.innerHTML = '<div class="loading">💬 正在用無線電聯絡路綫...</div>'; try { const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${line}&sta=${station}`); const data = await response.json(); if (data.status === 1 && data.data[`${line}-${station}`]) { const schedule = data.data[`${line}-${station}`]; etaResults.innerHTML = ""; let hasData = false; if (schedule.UP && schedule.UP.length > 0) { renderDirectionChinese(schedule.UP, etaResults); hasData = true; } if (schedule.DOWN && schedule.DOWN.length > 0) { renderDirectionChinese(schedule.DOWN, etaResults); hasData = true; } if (!hasData) etaResults.innerHTML = "<div class='loading'>💤 呢個車站依家休息緊。</div>"; } else { etaResults.innerHTML = "<div class='loading'>暫時未有此車站的班次。</div>"; } } catch (error) { etaResults.innerHTML = "<div class='loading'>❌ 聯絡失敗，請稍後再試。</div>"; } } function fetchETAFromUI() { const lineSelect = document.getElementById("line-select"); const stationSelect = document.getElementById("station-select"); if (!lineSelect.value || !stationSelect.value) { alert("請先選擇路綫同車站！"); return; } fetchETA(lineSelect.value, stationSelect.value, mtrData[lineSelect.value].stations[stationSelect.value], mtrData[lineSelect.value].name); } function renderDirectionChinese(trainArray, container) { if (!trainArray || trainArray.length === 0) return; const rawDestCode = trainArray[0].dest; const destChinese = destTranslation[rawDestCode] || rawDestCode; const dirDiv = document.createElement("div"); dirDiv.className = "dir-container"; const dirTitle = document.createElement("div"); dirTitle.className = "dir-title"; dirTitle.innerHTML = `<span>往 ${destChinese} 方向</span>`; dirDiv.appendChild(dirTitle); trainArray.forEach(train => { if(!train.time) return; const routeDiv = document.createElement("div"); routeDiv.className = "eta-route"; const timeStr = train.time.replace(/-/g, "/"); const diffMins = Math.max(0, Math.floor((new Date(timeStr) - new Date()) / 60000)); let timeDisplay = formatDiffText(diffMins); let imminentClass = diffMins === 0 ? "imminent " : ""; routeDiv.innerHTML = `<div class="train-detail"><span style="color:#8e7a68; font-weight:bold;">月台 ${train.plat}</span> &nbsp;|&nbsp; <span style="color:#b5a496;">${train.time.substring(11, 16)}</span></div><div class="eta-time ${imminentClass}">${timeDisplay}</div>`; dirDiv.appendChild(routeDiv); }); container.appendChild(dirDiv); }
+</script>
+</body>
+</html>
