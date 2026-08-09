@@ -186,7 +186,6 @@
             box-sizing: border-box;
         }
 
-        /* 遮罩背景 */
         .overlay {
             position: fixed;
             top: 0;
@@ -201,7 +200,6 @@
             display: block;
         }
 
-        /* 頁面切換內容區 */
         .page-content {
             display: none;
         }
@@ -209,7 +207,6 @@
             display: block;
         }
 
-        /* 主頁面已釘選站嘅列車時間樣式 */
         .train-row {
             display: flex;
             justify-content: space-between;
@@ -220,7 +217,6 @@
             font-size: 14px;
         }
 
-        /* 搜尋結果：全新靚靚卡片行設計 */
         .direction-title {
             background-color: var(--row-bg);
             padding: 8px 12px;
@@ -255,7 +251,6 @@
             font-size: 14px;
         }
 
-        /* 按鈕樣式 */
         .action-btn {
             background-color: var(--accent-color);
             color: #ffffff;
@@ -272,7 +267,6 @@
             opacity: 0.85;
         }
 
-        /* 取消 Pin 按鈕 */
         .unpin-btn {
             position: absolute;
             top: 12px;
@@ -288,7 +282,6 @@
             opacity: 1;
         }
 
-        /* 港鐵路綫圖簡易版面 */
         .map-line-box {
             background-color: var(--row-bg);
             border: 1px solid var(--border-color);
@@ -307,14 +300,8 @@
             width: 100%;
             border-radius: 8px;
             border: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .map-image-container img:hover {
-            opacity: 0.95;
         }
         
-        /* 搜尋建議清單 */
         #searchSuggestions {
             background: var(--bg-color);
             border: 1px solid var(--border-color);
@@ -338,14 +325,12 @@
 </head>
 <body>
 
-    <!-- 頂部導航欄 -->
     <header>
         <button class="menu-btn" onclick="toggleSidebar()">...</button>
         <h1 id="headerTitle">⭐ 我的釘選站 (Pinned)</h1>
         <div class="auto-refresh-badge">⏱️ 15s</div>
     </header>
 
-    <!-- 側邊選單 (Sidebar) -->
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -370,7 +355,6 @@
         </div>
     </div>
 
-    <!-- 主要內容區 -->
     <div class="container">
 
         <!-- 頁面 1：釘選站 (Pinned) -->
@@ -385,19 +369,20 @@
 
         <!-- 頁面 2：搜尋全港車站 -->
         <div id="page-search" class="page-content">
-            <!-- 🗺️ 港鐵路綫圖參考卡片 -->
+            <!-- 🗺️ 港鐵路綫圖參考卡片 (已加入你提供的路綫圖) -->
             <div class="card">
                 <h3>🗺️ 港鐵路綫參考圖</h3>
-                <p style="font-size: 13px; opacity: 0.8; margin-bottom: 10px;">點擊圖片可放大查看全港車站分佈：</p>
+                <p style="font-size: 13px; opacity: 0.8; margin-bottom: 10px;">對照下方地圖快速尋找站名：</p>
                 <div class="map-image-container">
-                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format&fit=crop&q=60" alt="港鐵路綫圖參考" id="mtrMapImg" onclick="alert('提示：可對照下方選單或直接打字搜尋車站！')">
+                    <!-- 嵌入你上載嘅圖片 -->
+                    <img src="image_8.png" alt="港鐵路綫圖參考">
                 </div>
             </div>
 
             <div class="card">
                 <h3>🔍 搜尋全港車站候車時間</h3>
                 
-                <!-- ⌨️ 新增：直接打字搜尋功能 -->
+                <!-- ⌨️ 文字即時搜尋輸入框 -->
                 <label for="stationSearchInput">⌨️ 直接打字搜尋車站（支援中/英文）：</label>
                 <input type="text" id="stationSearchInput" placeholder="例如：金鐘、Central、旺角..." oninput="filterStations(this.value)">
                 <div id="searchSuggestions"></div>
@@ -425,7 +410,6 @@
                 <button class="action-btn" onclick="searchStationTime()">立即查詢</button>
             </div>
 
-            <!-- 搜尋結果展示區 -->
             <div id="searchResultContainer"></div>
         </div>
 
@@ -433,28 +417,11 @@
         <div id="page-transfer" class="page-content">
             <div class="card">
                 <h3>🗺️ 港鐵路綫快速指南</h3>
-                <p style="font-size: 13px; opacity: 0.8; margin-bottom: 15px;">主要轉車站及核心轉線資訊：</p>
-                
-                <div class="map-line-box">
-                    <strong>🔴 紅色：荃灣綫 (TWL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">中環 ⟷ 金鐘 ⟷ 旺角 ⟷ 太子 ⟷ 荃灣</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🔵 藍色：港島綫 (ISL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">堅尼地城 ⟷ 金鐘 ⟷ 中環 ⟷ 北角 ⟷ 柴灣</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🟢 綠色：觀塘綫 (KTL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">黃埔 ⟷ 油麻地 ⟷ 九龍塘 ⟷ 鑽石山 ⟷ 調景嶺</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🟤 啡色：屯馬綫 (TML)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">烏溪沙 ⟷ 大圍 ⟷ 鑽石山 ⟷ 何文田 ⟷ 紅磡 ⟷ 屯門</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🩵 青色：東鐵綫 (EAL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">金鐘 ⟷ 會展 ⟷ 紅磡 ⟷ 九龍塘 ⟷ 大圍 ⟷ 上水 ⟷ 羅湖/落馬洲</span>
-                </div>
+                <div class="map-line-box"><strong>🔴 紅色：荃灣綫 (TWL)</strong></div>
+                <div class="map-line-box"><strong>🔵 藍色：港島綫 (ISL)</strong></div>
+                <div class="map-line-box"><strong>🟢 綠色：觀塘綫 (KTL)</strong></div>
+                <div class="map-line-box"><strong>🟤 啡色：屯馬綫 (TML)</strong></div>
+                <div class="map-line-box"><strong>🩵 青色：東鐵綫 (EAL)</strong></div>
             </div>
         </div>
 
@@ -462,7 +429,7 @@
         <div id="page-lift" class="page-content">
             <div class="card">
                 <h3>🛗 車站地面升降機指南</h3>
-                <p>（雙軌查詢與升降機卡片準備中...）</p>
+                <p>（升降機查詢功能準備中...）</p>
             </div>
         </div>
 
@@ -590,7 +557,6 @@
             }
         }
 
-        /* ⌨️ 文字即時搜尋與配對功能 */
         function filterStations(keyword) {
             const suggestionsBox = document.getElementById('searchSuggestions');
             suggestionsBox.innerHTML = '';
@@ -604,7 +570,6 @@
             for (let line in mtrDatabase) {
                 mtrDatabase[line].forEach(station => {
                     if (station.name.toLowerCase().includes(keyword.toLowerCase())) {
-                        // 避免同一條綫重複加同一個站
                         if (!matches.some(m => m.code === station.code && m.line === line)) {
                             let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "TML": "屯馬綫", "EAL": "東鐵綫" };
                             matches.push({
@@ -630,7 +595,7 @@
                         document.getElementById('stationSelect').value = match.code;
                         document.getElementById('stationSearchInput').value = match.name.split(' ')[0];
                         suggestionsBox.style.display = 'none';
-                        searchStationTime(); // 自動觸發查詢
+                        searchStationTime();
                     };
                     suggestionsBox.appendChild(div);
                 });
@@ -664,7 +629,6 @@
                 let hours = String(arrivalDate.getHours()).padStart(2, '0');
                 let minutes = String(arrivalDate.getMinutes()).padStart(2, '0');
                 let timeStr = `${hours}:${minutes}`;
-
                 let text = num <= 0 ? "已到達" : `${num} 分鐘`;
                 return { text: text, timeStr: timeStr };
             } else {
@@ -679,7 +643,6 @@
                 let hours = String(arrivalDate.getHours()).padStart(2, '0');
                 let minutes = String(arrivalDate.getMinutes()).padStart(2, '0');
                 let timeStr = `${hours}:${minutes}`;
-
                 let text = diffMins <= 0 ? "已到達" : `${diffMins} 分鐘`;
                 return { text: text, timeStr: timeStr };
             }
@@ -732,8 +695,7 @@
 
                 container.innerHTML = htmlContent;
             } catch (error) {
-                console.error("取得港鐵數據失敗:", error);
-                container.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">⚠️ 網絡連接發生錯誤，正嘗試自動重新整理...</p></div>`;
+                container.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">⚠️ 網絡連接發生錯誤...</p></div>`;
             }
         }
 
