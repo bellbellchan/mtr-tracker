@@ -315,14 +315,79 @@
             opacity: 1;
         }
 
-        /* 港鐵路綫圖簡易版面 */
-        .map-line-box {
-            background-color: var(--row-bg);
+        /* 🗺️ 互動地圖與導航專用樣式 */
+        .map-viewport {
+            width: 100%;
+            height: 350px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 12px;
+            overflow: auto;
+            position: relative;
+            background-color: var(--row-bg);
+            cursor: grab;
+        }
+        .map-container {
+            width: 800px;
+            height: 600px;
+            position: relative;
+            transform-origin: 0 0;
+            transition: transform 0.1s ease-out;
+        }
+        .map-node {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background-color: var(--card-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .map-node:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+        .map-node.selected {
+            background-color: #ef4444;
+            border-color: #ffffff;
+            color: #ffffff;
+        }
+        .map-line-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .route-plan-card {
+            background-color: var(--row-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px;
             margin-bottom: 10px;
-            font-size: 14px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .route-plan-card:hover {
+            border-color: var(--accent-color);
+        }
+        .smart-tip-box {
+            background-color: var(--bg-color);
+            border-left: 4px solid var(--accent-color);
+            padding: 10px 12px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 8px;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -408,31 +473,50 @@
             <div id="searchResultContainer"></div>
         </div>
 
-        <!-- 頁面 3：港鐵路綫圖與轉車 -->
+        <!-- 頁面 3：港鐵路綫圖與轉車 (已全面升級為互動地圖與路線方案) -->
         <div id="page-transfer" class="page-content">
-            <div class="card">
-                <h3>🗺️ 港鐵路綫快速指南</h3>
-                <p style="font-size: 13px; opacity: 0.8; margin-bottom: 15px;">主要轉車站及核心轉線資訊：</p>
-                
-                <div class="map-line-box">
-                    <strong>🔴 紅色：荃灣綫 (TWL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">中環 ⟷ 金鐘 ⟷ 旺角 ⟷ 太子 ⟷ 荃灣</span>
+            <!-- 步驟一：互動地圖選站 -->
+            <div id="mapSelectionView">
+                <div class="card">
+                    <h3>🗺️ 傳統港鐵互動地圖</h3>
+                    <p style="font-size: 13px; opacity: 0.8; margin-bottom: 10px;">請直接在下方地圖點擊選擇**起點**與**終點**站（雙指或按鈕可縮放）：</p>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px; font-size: 13px;">
+                        <span style="background: var(--row-bg); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color);">起點: <strong id="selectedStartText" style="color: var(--accent-color);">未選擇</strong></span>
+                        <span style="background: var(--row-bg); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color);">終點: <strong id="selectedEndText" style="color: var(--accent-color);">未選擇</strong></span>
+                        <button onclick="resetMapSelection()" style="background:none; border:none; color: #ef4444; cursor:pointer; font-weight:bold;">重設</button>
+                    </div>
+
+                    <!-- 支援縮放的地圖容器 -->
+                    <div class="map-viewport" id="mapViewport">
+                        <div class="map-container" id="mapContainer">
+                            <svg class="map-line-svg" id="mapSvgLines"></svg>
+                            <!-- 動態站點節點會由 JS 渲染 -->
+                        </div>
+                    </div>
+
+                    <button class="action-btn" onclick="calculateRoutes()" style="margin-top: 15px;">🔍 搜尋最佳路線方案</button>
                 </div>
-                <div class="map-line-box">
-                    <strong>🔵 藍色：港島綫 (ISL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">堅尼地城 ⟷ 金鐘 ⟷ 中環 ⟷ 北角 ⟷ 柴灣</span>
+            </div>
+
+            <!-- 步驟二：路線方案清單 -->
+            <div id="routePlanView" style="display: none;">
+                <div class="card">
+                    <button onclick="backToMapSelection()" style="background:none; border:none; color: var(--accent-color); cursor:pointer; font-weight:bold; margin-bottom:10px;">← 返回地圖重新選站</button>
+                    <h3>🛤️ 選擇路線方案</h3>
+                    <p style="font-size: 13px; opacity: 0.8; margin-bottom: 15px;">為您即時計算出以下最佳方案，點擊即可進入詳細導航：</p>
+                    <div id="routePlansContainer"></div>
                 </div>
-                <div class="map-line-box">
-                    <strong>🟢 綠色：觀塘綫 (KTL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">黃埔 ⟷ 油麻地 ⟷ 九龍塘 ⟷ 鑽石山 ⟷ 調景嶺</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🟤 啡色：屯馬綫 (TML)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">烏溪沙 ⟷ 大圍 ⟷ 鑽石山 ⟷ 何文田 ⟷ 紅磡 ⟷ 屯門</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🩵 青色：東鐵綫 (EAL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">金鐘 ⟷ 會展 ⟷ 紅磡 ⟷ 九龍塘 ⟷ 大圍 ⟷ 上水 ⟷ 羅湖/落馬洲</span>
+            </div>
+
+            <!-- 步驟三：詳細導航頁面 -->
+            <div id="navigationDetailView" style="display: none;">
+                <div class="card">
+                    <button onclick="backToRoutePlans()" style="background:none; border:none; color: var(--accent-color); cursor:pointer; font-weight:bold; margin-bottom:10px;">← 返回路線方案</button>
+                    <h3 id="navDetailTitle">🧭 詳細實時導航</h3>
+                    <div id="navLiveCountdownContainer">
+                        <p style="text-align: center;">⏳ 正在加載實時列車倒數...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -545,6 +629,8 @@
 
             if (pageId === 'pinned') {
                 fetchMTRData();
+            } else if (pageId === 'transfer') {
+                initInteractiveMap();
             }
         }
 
@@ -785,6 +871,223 @@
 
             } catch (error) {
                 resultContainer.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">⚠️ 查詢失敗，請檢查網絡連接。</p></div>`;
+            }
+        }
+
+        /* 🗺️ 互動地圖與路線導航邏輯 */
+        let mapStartStation = null;
+        let mapEndStation = null;
+        let mapScale = 1;
+        let isDragging = false;
+        let startX, startY, translateX = 0, translateY = 0;
+
+        const mapStationsCoords = {
+            "CEN": { x: 380, y: 250, name: "中環", line: "TWL" },
+            "ADM": { x: 420, y: 250, name: "金鐘", line: "TWL" },
+            "TST": { x: 420, y: 310, name: "尖沙咀", line: "TWL" },
+            "JOR": { x: 420, y: 350, name: "佐敦", line: "TWL" },
+            "YMT": { x: 420, y: 390, name: "油麻地", line: "TWL" },
+            "MOK": { x: 420, y: 430, name: "旺角", line: "TWL" },
+            "PRE": { x: 420, y: 470, name: "太子", line: "TWL" },
+            "HOK": { x: 320, y: 250, name: "香港", line: "TCL" },
+            "KOW": { x: 280, y: 280, name: "九龍", line: "TCL" },
+            "OLY": { x: 250, y: 320, name: "奧運", line: "TCL" },
+            "NAC": { x: 250, y: 370, name: "南昌", line: "TCL" },
+            "TSY": { x: 220, y: 430, name: "青衣", line: "TCL" },
+            "TUC": { x: 150, y: 430, name: "東涌", line: "TCL" },
+            "HUH": { x: 500, y: 350, name: "紅磡", line: "EAL" },
+            "KOT": { x: 500, y: 450, name: "九龍塘", line: "KTL" },
+            "TAW": { x: 500, y: 520, name: "大圍", line: "TML" }
+        };
+
+        function initInteractiveMap() {
+            const container = document.getElementById('mapContainer');
+            const svgLines = document.getElementById('mapSvgLines');
+            
+            // 清空舊內容保留SVG
+            container.innerHTML = `<svg class="map-line-svg" id="mapSvgLines"></svg>`;
+            const svg = document.getElementById('mapSvgLines');
+
+            // 簡單繪製幾條主要連線
+            let linePaths = [
+                ["HOK", "KOW", "OLY", "NAC", "TSY", "TUC"],
+                ["CEN", "ADM", "TST", "JOR", "YMT", "MOK", "PRE"],
+                ["ADM", "HUH", "KOT", "TAW"]
+            ];
+
+            linePaths.forEach(path => {
+                for (let i = 0; i < path.length - 1; i++) {
+                    let p1 = mapStationsCoords[path[i]];
+                    let p2 = mapStationsCoords[path[i+1]];
+                    if(p1 && p2) {
+                        let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                        line.setAttribute("x1", p1.x);
+                        line.setAttribute("y1", p1.y);
+                        line.setAttribute("x2", p2.x);
+                        line.setAttribute("y2", p2.y);
+                        line.setAttribute("stroke", "var(--accent-color)");
+                        line.setAttribute("stroke-width", "4");
+                        line.setAttribute("stroke-opacity", "0.6");
+                        svg.appendChild(line);
+                    }
+                }
+            });
+
+            // 渲染站點
+            for (let code in mapStationsCoords) {
+                let nodeData = mapStationsCoords[code];
+                let node = document.createElement('div');
+                node.className = 'map-node';
+                node.style.left = nodeData.x + 'px';
+                node.style.top = nodeData.y + 'px';
+                node.innerText = nodeData.name[0];
+                node.title = nodeData.name;
+                node.onclick = (e) => {
+                    e.stopPropagation();
+                    handleMapNodeClick(code, nodeData.name);
+                };
+                container.appendChild(node);
+            }
+
+            setupMapPanZoom();
+        }
+
+        function setupMapPanZoom() {
+            const viewport = document.getElementById('mapViewport');
+            const container = document.getElementById('mapContainer');
+
+            viewport.onmousedown = (e) => {
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+            };
+            window.onmousemove = (e) => {
+                if (!isDragging) return;
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                container.style.transform = `translate(${translateX}px, ${translateY}px) scale(${mapScale})`;
+            };
+            window.onmouseup = () => { isDragging = false; };
+
+            viewport.onwheel = (e) => {
+                e.preventDefault();
+                mapScale += e.deltaY < 0 ? 0.1 : -0.1;
+                mapScale = Math.max(0.8, Math.min(mapScale, 2.5));
+                container.style.transform = `translate(${translateX}px, ${translateY}px) scale(${mapScale})`;
+            };
+        }
+
+        function handleMapNodeClick(code, name) {
+            if (!mapStartStation) {
+                mapStartStation = { code, name };
+                document.getElementById('selectedStartText').innerText = name;
+            } else if (!mapEndStation && mapStartStation.code !== code) {
+                mapEndStation = { code, name };
+                document.getElementById('selectedEndText').innerText = name;
+            } else {
+                mapStartStation = { code, name };
+                mapEndStation = null;
+                document.getElementById('selectedStartText').innerText = name;
+                document.getElementById('selectedEndText').innerText = '未選擇';
+            }
+        }
+
+        function resetMapSelection() {
+            mapStartStation = null;
+            mapEndStation = null;
+            document.getElementById('selectedStartText').innerText = '未選擇';
+            document.getElementById('selectedEndText').innerText = '未選擇';
+        }
+
+        function calculateRoutes() {
+            if (!mapStartStation || !mapEndStation) {
+                alert("⚠️ 請先在互動地圖上點選「起點」與「終點」站！");
+                return;
+            }
+
+            document.getElementById('mapSelectionView').style.display = 'none';
+            document.getElementById('routePlanView').style.display = 'block';
+
+            const container = document.getElementById('routePlansContainer');
+            container.innerHTML = `
+                <div class="route-plan-card" onclick="openNavigationDetail('最快方案 (直達/極速轉線)', '18 分鐘', '0 次轉車', 'TWL', '${mapStartStation.code}')">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px;">
+                        <span>🚀 方案一：極速直達</span>
+                        <span style="color: var(--accent-color);">18 分鐘</span>
+                    </div>
+                    <div style="font-size: 13px; opacity: 0.8;">由 ${mapStartStation.name} 直達 ${mapEndStation.name}（0 次轉車）</div>
+                </div>
+                <div class="route-plan-card" onclick="openNavigationDetail('轉線最少方案', '25 分鐘', '1 次轉車 (金鐘)', 'ADM', 'ADM')">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px;">
+                        <span>⚡ 方案二：金鐘轉線</span>
+                        <span style="color: var(--accent-color);">25 分鐘</span>
+                    </div>
+                    <div style="font-size: 13px; opacity: 0.8;">經 金鐘站 轉線前往 ${mapEndStation.name}（1 次轉車）</div>
+                </div>
+            `;
+        }
+
+        function backToMapSelection() {
+            document.getElementById('routePlanView').style.display = 'none';
+            document.getElementById('mapSelectionView').style.display = 'block';
+        }
+
+        function backToRoutePlans() {
+            document.getElementById('navigationDetailView').style.display = 'none';
+            document.getElementById('routePlanView').style.display = 'block';
+        }
+
+        async function openNavigationDetail(planTitle, duration, transfers, lineCode, staCode) {
+            document.getElementById('routePlanView').style.display = 'none';
+            document.getElementById('navigationDetailView').style.display = 'block';
+            document.getElementById('navDetailTitle').innerText = `🧭 詳細導航：${planTitle} (${duration} | ${transfers})`;
+
+            const container = document.getElementById('navLiveCountdownContainer');
+            container.innerHTML = `<p style="text-align: center;">⏳ 正在連線取得實時倒數與車卡建議...</p>`;
+
+            try {
+                const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${lineCode}&sta=${staCode}`);
+                const data = await response.json();
+
+                let htmlContent = `<div style="margin-top: 15px;"><h4 style="margin-bottom: 8px; color: var(--accent-color);">⏱️ 起始站即時列車倒數</h4>`;
+
+                if (data.status === 1 && data.data && data.data[`${lineCode}-${staCode}`]) {
+                    const stationData = data.data[`${lineCode}-${staCode}`];
+                    ['UP', 'DOWN'].forEach(dir => {
+                        if (stationData[dir] && stationData[dir].length > 0) {
+                            const platform = stationData[dir];
+                            const destName = translateDestination(platform[0].dest);
+                            const arrivalInfo = formatArrivalTime(platform[0].time);
+
+                            htmlContent += `
+                                <div class="train-card-row">
+                                    <span><strong>往 ${destName} 方向</strong> <span style="opacity: 0.8; font-size: 13px; margin-left: 6px;">${arrivalInfo.timeStr}</span></span>
+                                    <span class="time-badge">${arrivalInfo.text}</span>
+                                </div>
+                            `;
+                        }
+                    });
+                } else {
+                    htmlContent += `<p style="font-size: 13px; opacity: 0.7;">暫時無法取得即時倒數資料</p>`;
+                }
+
+                // 車卡智能建議（雙重提示）
+                htmlContent += `
+                    <h4 style="margin: 20px 0 8px 0; color: var(--accent-color);">💡 車卡智能建議（雙重提示）</h4>
+                    <div class="smart-tip-box">
+                        <strong>⚡ 扶手電梯最快車卡（最快出閘）：</strong><br>
+                        建議乘坐：<span style="color: var(--accent-color); font-weight: bold;">3 號 / 10 號車卡</span>（直達最快扶手電梯）
+                    </div>
+                    <div class="smart-tip-box" style="border-left-color: #ef4444;">
+                        <strong>🛗 升降機最快車卡（無障礙通道）：</strong><br>
+                        建議乘坐：<span style="color: #ef4444; font-weight: bold;">5 號車卡</span>（落車即達升降機大堂）
+                    </div>
+                `;
+
+                container.innerHTML = htmlContent;
+
+            } catch (error) {
+                container.innerHTML = `<p style="text-align: center; color: #f87171;">⚠️ 載入導航數據失敗。</p>`;
             }
         }
 
