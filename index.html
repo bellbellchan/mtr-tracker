@@ -213,6 +213,17 @@
             border-top: 1px dashed var(--border-color);
             font-size: 14px;
         }
+        .train-schedule-group {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+        }
+        .time-badges-container {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
         .time-badge {
             background-color: var(--accent-color);
             color: #ffffff;
@@ -351,113 +362,67 @@
         // 港鐵全港主要車站對應列表
         const mtrDatabase = {
             "TWL": [
-                { code: "CEN", name: "中環 (Central)" },
-                { code: "ADM", name: "金鐘 (Admiralty)" },
-                { code: "TST", name: "尖沙咀 (Tsim Sha Tsui)" },
-                { code: "JOR", name: "佐敦 (Jordan)" },
-                { code: "YMT", name: "油麻地 (Yau Ma Tei)" },
-                { code: "MOK", name: "旺角 (Mong Kok)" },
-                { code: "PRE", name: "太子 (Prince Edward)" },
-                { code: "SSP", name: "深水埗 (Sham Shui Po)" },
-                { code: "CSW", name: "長沙灣 (Cheung Sha Wan)" },
-                { code: "LCK", name: "荔枝角 (Lai Chi Kok)" },
-                { code: "MEF", name: "美孚 (Mei Foo)" },
-                { code: "LAK", name: "荔景 (Lai King)" },
-                { code: "KWF", name: "葵芳 (Kwai Fong)" },
-                { code: "KWH", name: "葵興 (Kwai Hing)" },
-                { code: "TWH", name: "大窩口 (Tai Wo Hau)" },
-                { code: "TSW", name: "荃灣 (Tsuen Wan)" }
+                { code: "CEN", name: "中環 (Central)" }, { code: "ADM", name: "金鐘 (Admiralty)" },
+                { code: "TST", name: "尖沙咀 (Tsim Sha Tsui)" }, { code: "JOR", name: "佐敦 (Jordan)" },
+                { code: "YMT", name: "油麻地 (Yau Ma Tei)" }, { code: "MOK", name: "旺角 (Mong Kok)" },
+                { code: "PRE", name: "太子 (Prince Edward)" }, { code: "SSP", name: "深水埗 (Sham Shui Po)" },
+                { code: "CSW", name: "長沙灣 (Cheung Sha Wan)" }, { code: "LCK", name: "荔枝角 (Lai Chi Kok)" },
+                { code: "MEF", name: "美孚 (Mei Foo)" }, { code: "LAK", name: "荔景 (Lai King)" },
+                { code: "KWF", name: "葵芳 (Kwai Fong)" }, { code: "KWH", name: "葵興 (Kwai Hing)" },
+                { code: "TWH", name: "大窩口 (Tai Wo Hau)" }, { code: "TSW", name: "荃灣 (Tsuen Wan)" }
             ],
             "ISL": [
-                { code: "KET", name: "堅尼地城 (Kennedy Town)" },
-                { code: "HKU", name: "香港大學 (HKU)" },
-                { code: "SYP", name: "西營盤 (Sai Ying Pun)" },
-                { code: "SHW", name: "上環 (Sheung Wan)" },
-                { code: "CEN", name: "中環 (Central)" },
-                { code: "ADM", name: "金鐘 (Admiralty)" },
-                { code: "WAC", name: "灣仔 (Wan Chai)" },
-                { code: "CAB", name: "銅鑼灣 (Causeway Bay)" },
-                { code: "TIH", name: "天后 (Tin Hau)" },
-                { code: "FOH", name: "炮台山 (Fortress Hill)" },
-                { code: "NOP", name: "北角 (North Point)" },
-                { code: "QUB", name: "鰂魚涌 (Quarry Bay)" },
-                { code: "TAK", name: "太古 (Tai Koo)" },
-                { code: "SWH", name: "西灣河 (Sai Wan Ho)" },
-                { code: "SKW", name: "筲箕灣 (Shau Kei Wan)" },
-                { code: "HFC", name: "杏花邨 (Heng Fa Chuen)" },
+                { code: "KET", name: "堅尼地城 (Kennedy Town)" }, { code: "HKU", name: "香港大學 (HKU)" },
+                { code: "SYP", name: "西營盤 (Sai Ying Pun)" }, { code: "SHW", name: "上環 (Sheung Wan)" },
+                { code: "CEN", name: "中環 (Central)" }, { code: "ADM", name: "金鐘 (Admiralty)" },
+                { code: "WAC", name: "灣仔 (Wan Chai)" }, { code: "CAB", name: "銅鑼灣 (Causeway Bay)" },
+                { code: "TIH", name: "天后 (Tin Hau)" }, { code: "FOH", name: "炮台山 (Fortress Hill)" },
+                { code: "NOP", name: "北角 (North Point)" }, { code: "QUB", name: "鰂魚涌 (Quarry Bay)" },
+                { code: "TAK", name: "太古 (Tai Koo)" }, { code: "SWH", name: "西灣河 (Sai Wan Ho)" },
+                { code: "SKW", name: "筲箕灣 (Shau Kei Wan)" }, { code: "HFC", name: "杏花邨 (Heng Fa Chuen)" },
                 { code: "CHW", name: "柴灣 (Chai Wan)" }
             ],
             "KTL": [
-                { code: "WHA", name: "黃埔 (Whampoa)" },
-                { code: "HOM", name: "何文田 (Ho Man Tin)" },
-                { code: "YMT", name: "油麻地 (Yau Ma Tei)" },
-                { code: "MOK", name: "旺角 (Mong Kok)" },
-                { code: "PRE", name: "太子 (Prince Edward)" },
-                { code: "SKM", name: "石硤尾 (Shek Kip Mei)" },
-                { code: "KOT", name: "九龍塘 (Kowloon Tong)" },
-                { code: "LOF", name: "樂富 (Lok Fu)" },
-                { code: "WTS", name: "黃大仙 (Wong Tai Sin)" },
-                { code: "DIH", name: "鑽石山 (Diamond Hill)" },
-                { code: "CHH", name: "彩虹 (Choi Hung)" },
-                { code: "KOB", name: "九龍灣 (Kowloon Bay)" },
-                { code: "NTK", name: "牛頭角 (Ngau Tau Kok)" },
-                { code: "KWT", name: "觀塘 (Kwun Tong)" },
-                { code: "LAT", name: "藍田 (Lam Tin)" },
-                { code: "YAT", name: "油塘 (Yau Tong)" },
+                { code: "WHA", name: "黃埔 (Whampoa)" }, { code: "HOM", name: "何文田 (Ho Man Tin)" },
+                { code: "YMT", name: "油麻地 (Yau Ma Tei)" }, { code: "MOK", name: "旺角 (Mong Kok)" },
+                { code: "PRE", name: "太子 (Prince Edward)" }, { code: "SKM", name: "石硤尾 (Shek Kip Mei)" },
+                { code: "KOT", name: "九龍塘 (Kowloon Tong)" }, { code: "LOF", name: "樂富 (Lok Fu)" },
+                { code: "WTS", name: "黃大仙 (Wong Tai Sin)" }, { code: "DIH", name: "鑽石山 (Diamond Hill)" },
+                { code: "CHH", name: "彩虹 (Choi Hung)" }, { code: "KOB", name: "九龍灣 (Kowloon Bay)" },
+                { code: "NTK", name: "牛頭角 (Ngau Tau Kok)" }, { code: "KWT", name: "觀塘 (Kwun Tong)" },
+                { code: "LAT", name: "藍田 (Lam Tin)" }, { code: "YAT", name: "油塘 (Yau Tong)" },
                 { code: "TIK", name: "調景嶺 (Tiu Keng Leng)" }
             ],
             "TML": [
-                { code: "WKS", name: "烏溪沙 (Wu Kai Sha)" },
-                { code: "MOS", name: "馬鞍山 (Ma On Shan)" },
-                { code: "HEO", name: "恆安 (Heng On)" },
-                { code: "TSH", name: "大水坑 (Tai Shui Hang)" },
-                { code: "SHM", name: "石門 (Shek Mun)" },
-                { code: "CIO", name: "第一城 (City One)" },
-                { code: "STW", name: "沙田圍 (Sha Tin Wai)" },
-                { code: "CKT", name: "車公廟 (Che Kung Temple)" },
-                { code: "TAW", name: "大圍 (Tai Wai)" },
-                { code: "HIK", name: "顯徑 (Hin Keng)" },
-                { code: "DIH", name: "鑽石山 (Diamond Hill)" },
-                { code: "KAT", name: "啟德 (Kai Tak)" },
-                { code: "SUW", name: "宋皇臺 (Sung Wong Toi)" },
-                { code: "TKW", name: "土瓜灣 (To Kwa Wan)" },
-                { code: "HOM", name: "何文田 (Ho Man Tin)" },
-                { code: "HUH", name: "紅磡 (Hung Hom)" },
-                { code: "ETS", name: "尖東 (East Tsim Sha Tsui)" },
-                { code: "AUS", name: "柯士甸 (Austin)" },
-                { code: "NAC", name: "南昌 (Nam Cheong)" },
-                { code: "MEF", name: "美孚 (Mei Foo)" },
-                { code: "TWW", name: "荃灣西 (Tsuen Wan West)" },
-                { code: "KSR", name: "錦上路 (Kam Sheung Road)" },
-                { code: "YUL", name: "元朗 (Yuen Long)" },
-                { code: "LOP", name: "朗屏 (Long Ping)" },
-                { code: "TSI", name: "天水圍 (Tin Shui Wai)" },
-                { code: "SIH", name: "兆康 (Siu Kang)" },
+                { code: "WKS", name: "烏溪沙 (Wu Kai Sha)" }, { code: "MOS", name: "馬鞍山 (Ma On Shan)" },
+                { code: "HEO", name: "恆安 (Heng On)" }, { code: "TSH", name: "大水坑 (Tai Shui Hang)" },
+                { code: "SHM", name: "石門 (Shek Mun)" }, { code: "CIO", name: "第一城 (City One)" },
+                { code: "STW", name: "沙田圍 (Sha Tin Wai)" }, { code: "CKT", name: "車公廟 (Che Kung Temple)" },
+                { code: "TAW", name: "大圍 (Tai Wai)" }, { code: "HIK", name: "顯徑 (Hin Keng)" },
+                { code: "DIH", name: "鑽石山 (Diamond Hill)" }, { code: "KAT", name: "啟德 (Kai Tak)" },
+                { code: "SUW", name: "宋皇臺 (Sung Wong Toi)" }, { code: "TKW", name: "土瓜灣 (To Kwa Wan)" },
+                { code: "HOM", name: "何文田 (Ho Man Tin)" }, { code: "HUH", name: "紅磡 (Hung Hom)" },
+                { code: "ETS", name: "尖東 (East Tsim Sha Tsui)" }, { code: "AUS", name: "柯士甸 (Austin)" },
+                { code: "NAC", name: "南昌 (Nam Cheong)" }, { code: "MEF", name: "美孚 (Mei Foo)" },
+                { code: "TWW", name: "荃灣西 (Tsuen Wan West)" }, { code: "KSR", name: "錦上路 (Kam Sheung Road)" },
+                { code: "YUL", name: "元朗 (Yuen Long)" }, { code: "LOP", name: "朗屏 (Long Ping)" },
+                { code: "TSI", name: "天水圍 (Tin Shui Wai)" }, { code: "SIH", name: "兆康 (Siu Kang)" },
                 { code: "TUM", name: "屯門 (Tuen Mun)" }
             ],
             "EAL": [
-                { code: "ADM", name: "金鐘 (Admiralty)" },
-                { code: "EXC", name: "會展 (Exhibition Centre)" },
-                { code: "HUH", name: "紅磡 (Hung Hom)" },
-                { code: "MKK", name: "旺角東 (Mong Kok East)" },
-                { code: "KOT", name: "九龍塘 (Kowloon Tong)" },
-                { code: "SHT", name: "沙田 (Sha Tin)" },
-                { code: "FTN", name: "火炭 (Fo Tan)" },
-                { code: "RAC", name: "馬場 (Racecourse)" },
-                { code: "UNI", name: "大學 (University)" },
-                { code: "TAP", name: "大埔墟 (Tai Po Market)" },
-                { code: "TWO", name: "太和 (Tai Wo)" },
-                { code: "FAN", name: "粉嶺 (Fanling)" },
-                { code: "SHS", name: "上水 (Sheung Shui)" },
-                { code: "LOW", name: "羅湖 (Lo Wu)" },
+                { code: "ADM", name: "金鐘 (Admiralty)" }, { code: "EXC", name: "會展 (Exhibition Centre)" },
+                { code: "HUH", name: "紅磡 (Hung Hom)" }, { code: "MKK", name: "旺角東 (Mong Kok East)" },
+                { code: "KOT", name: "九龍塘 (Kowloon Tong)" }, { code: "SHT", name: "沙田 (Sha Tin)" },
+                { code: "FTN", name: "火炭 (Fo Tan)" }, { code: "RAC", name: "馬場 (Racecourse)" },
+                { code: "UNI", name: "大學 (University)" }, { code: "TAP", name: "大埔墟 (Tai Po Market)" },
+                { code: "TWO", name: "太和 (Tai Wo)" }, { code: "FAN", name: "粉嶺 (Fanling)" },
+                { code: "SHS", name: "上水 (Sheung Shui)" }, { code: "LOW", name: "羅湖 (Lo Wu)" },
                 { code: "LMC", name: "落馬洲 (Lok Ma Chau)" }
             ]
         };
 
-        let pinnedList = [
-            { id: "TWL-MOK", line: "TWL", station: "MOK", name: "旺角站 (Mong Kok) - 荃灣綫" },
-            { id: "ISL-ADM", line: "ISL", station: "ADM", name: "金鐘站 (Admiralty) - 港島綫" }
-        ];
+        // 預設為空陣列，由你話事話要 Pin 邊個站！
+        let pinnedList = [];
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
@@ -476,6 +441,8 @@
 
             if (pageId === 'search') {
                 updateStationOptions();
+            } else if (pageId === 'pinned') {
+                fetchMTRData();
             }
         }
 
@@ -495,7 +462,8 @@
                 let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "TML": "屯馬綫", "EAL": "東鐵綫" };
                 let lineName = lineNameMap[line] || line;
                 pinnedList.push({ id: newId, line: line, station: stationCode, name: `${stationFullName} - ${lineName}` });
-                alert("⭐ 成功加入釘選站！返去主頁即可查看。");
+                alert("⭐ 成功加入釘選站！");
+                fetchMTRData(); // 立即重新整理主頁渲染
             } else {
                 alert("💡 這個車站已經在你的釘選列表裏面了！");
             }
@@ -625,7 +593,7 @@
 
                 let htmlContent = `
                     <div class="card">
-                        <h3>🔍 ${stationFullName} 實時候車時間</h3>
+                        <h3>🔍 ${stationFullName} 實時候車時間 (多班列車)</h3>
                 `;
 
                 if (data.status === 1 && data.data && data.data[`${line}-${stationCode}`]) {
@@ -635,12 +603,21 @@
                         if (stationData[dir] && stationData[dir].length > 0) {
                             const platform = stationData[dir];
                             const destName = translateDestination(platform[0].dest);
-                            const arrivalInfo = formatArrivalTime(platform[0].time);
 
                             htmlContent += `
-                                <div class="train-row">
-                                    <span><strong>往 ${destName} 方向</strong> <span style="opacity: 0.8; font-size: 13px; margin-left: 6px; font-weight: bold; color: var(--accent-color);">${arrivalInfo.timeStr}</span></span>
-                                    <span class="time-badge">${arrivalInfo.text}</span>
+                                <div class="train-schedule-group">
+                                    <div style="font-weight: bold; margin-bottom: 6px; color: var(--accent-color);">往 ${destName} 方向</div>
+                                    <div class="time-badges-container">
+                            `;
+
+                            // 檢視頭 3 程車嘅等候時間
+                            platform.slice(0, 3).forEach((train, index) => {
+                                const arrivalInfo = formatArrivalTime(train.time);
+                                htmlContent += `<span class="time-badge">${index === 0 ? '第1班: ' : (index === 1 ? '第2班: ' : '第3班: ')}${arrivalInfo.text} (${arrivalInfo.timeStr})</span>`;
+                            });
+
+                            htmlContent += `
+                                    </div>
                                 </div>
                             `;
                         }
