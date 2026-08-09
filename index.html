@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>港鐵實時資訊網 MTR Live Info</title>
+    <title>港鐵實時資訊網 MTR Live Info (地圖參考 + 智能打字搜尋)</title>
     <style>
-        /* 🎨 主題顏色變數設定 (5款精選風格) */
         :root[data-theme="dark"] {
             --bg-color: #121212;
             --card-bg: #1e1e1e;
@@ -52,7 +51,6 @@
             --row-bg: #f7f2e4;
         }
 
-        /* 🌐 全局基本樣式 */
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
@@ -111,7 +109,6 @@
             border-radius: 20px;
         }
 
-        /* 📱 側邊導航選單 (Sidebar) */
         .sidebar {
             position: fixed;
             top: 0;
@@ -125,6 +122,7 @@
             z-index: 2000;
             padding: 20px;
             box-sizing: border-box;
+            overflow-y: auto;
         }
 
         .sidebar.open {
@@ -174,7 +172,7 @@
             margin-bottom: 8px;
         }
 
-        select {
+        select, input {
             width: 100%;
             padding: 10px;
             border-radius: 8px;
@@ -183,9 +181,43 @@
             color: var(--text-color);
             font-size: 14px;
             margin-bottom: 10px;
+            box-sizing: border-box;
         }
 
-        /* 遮罩背景 */
+        /* 智能搜尋輸入框的下拉建議清單 */
+        .autocomplete-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .suggestions-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .suggestion-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .suggestion-item:hover {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
         .overlay {
             position: fixed;
             top: 0;
@@ -200,7 +232,6 @@
             display: block;
         }
 
-        /* 頁面切換內容區 */
         .page-content {
             display: none;
         }
@@ -208,7 +239,6 @@
             display: block;
         }
 
-        /* 主頁面已釘選站嘅列車時間樣式 */
         .train-row {
             display: flex;
             justify-content: space-between;
@@ -219,7 +249,6 @@
             font-size: 14px;
         }
 
-        /* 搜尋結果：全新靚靚卡片行設計 */
         .direction-title {
             background-color: var(--row-bg);
             padding: 8px 12px;
@@ -254,7 +283,6 @@
             font-size: 14px;
         }
 
-        /* 按鈕樣式 */
         .action-btn {
             background-color: var(--accent-color);
             color: #ffffff;
@@ -271,7 +299,6 @@
             opacity: 0.85;
         }
 
-        /* 取消 Pin 按鈕 */
         .unpin-btn {
             position: absolute;
             top: 12px;
@@ -287,27 +314,31 @@
             opacity: 1;
         }
 
-        /* 港鐵路綫圖簡易版面 */
-        .map-line-box {
-            background-color: var(--row-bg);
+        /* 港鐵路綫圖預覽樣式 */
+        .map-preview-container {
+            margin-top: 15px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
-            font-size: 14px;
+            overflow: hidden;
+            background-color: var(--row-bg);
+            text-align: center;
+        }
+        .map-preview-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <!-- 頂部導航欄 -->
     <header>
         <button class="menu-btn" onclick="toggleSidebar()">...</button>
         <h1 id="headerTitle">⭐ 我的釘選站 (Pinned)</h1>
         <div class="auto-refresh-badge">⏱️ 15s</div>
     </header>
 
-    <!-- 側邊選單 (Sidebar) -->
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -332,7 +363,6 @@
         </div>
     </div>
 
-    <!-- 主要內容區 -->
     <div class="container">
 
         <!-- 頁面 1：釘選站 (Pinned) -->
@@ -345,29 +375,35 @@
             <p style="text-align: center; font-size: 13px; opacity: 0.6;">💡 提示：畫面每 15 秒會在背景自動更新一次。</p>
         </div>
 
-        <!-- 頁面 2：搜尋全港車站 -->
+        <!-- 頁面 2：搜尋全港車站 (智能打字輸入 + 港鐵地圖參考) -->
         <div id="page-search" class="page-content">
             <div class="card">
-                <h3>🔍 搜尋全港車站候車時間</h3>
-                <label for="lineSelect">選擇鐵路綫：</label>
-                <select id="lineSelect" onchange="updateStationOptions()">
-                    <option value="" disabled selected>-- 請選擇鐵路綫 --</option>
-                    <option value="TWL">荃灣綫 (TWL)</option>
-                    <option value="ISL">港島綫 (ISL)</option>
-                    <option value="KTL">觀塘綫 (KTL)</option>
-                    <option value="SIL">南港島綫 (SIL)</option>
-                    <option value="TKE">將軍澳綫 (TKE)</option>
-                    <option value="EAL">東鐵綫 (EAL)</option>
-                    <option value="TML">屯馬綫 (TML)</option>
-                    <option value="TCL">東涌綫 (TCL)</option>
-                </select>
+                <h3>🔍 智能打字搜尋車站</h3>
+                <label for="stationSearchInput">直接打字輸入站名（例如：金鐘、中環、旺角）：</label>
+                
+                <div class="autocomplete-container">
+                    <input type="text" id="stationSearchInput" placeholder="請輸入車站名稱..." oninput="filterStations(this.value)" autocomplete="off">
+                    <div id="suggestionsList" class="suggestions-list"></div>
+                </div>
 
-                <label for="stationSelect">選擇車站：</label>
-                <select id="stationSelect">
-                    <option value="" disabled selected>-- 請先選擇鐵路綫 --</option>
-                </select>
+                <input type="hidden" id="selectedLine">
+                <input type="hidden" id="selectedStationCode">
+                <input type="hidden" id="selectedStationName">
 
-                <button class="action-btn" onclick="searchStationTime()">立即查詢</button>
+                <button class="action-btn" onclick="searchStationTimeFromInput()">立即查詢實時資料</button>
+            </div>
+
+            <!-- 參考用的港鐵路綫圖區 -->
+            <div class="card">
+                <h3>🗺️ 港鐵官方路綫圖參考</h3>
+                <p style="font-size: 13px; opacity: 0.8; margin-bottom: 10px;">唔肯定個站叫乜名？望一望下面嘅路綫圖對照：</p>
+                <div class="map-preview-container">
+                    <!-- 使用港鐵官方公開的路綫圖連結作參考 -->
+                    <a href="https://www.mtr.com.hk/archive/ch/services/routemap.pdf" target="_blank" title="點擊查看高清官方 PDF 路綫圖">
+                        <img src="https://www.mtr.com.hk/ch/customer/services/images/routemap_L.jpg" alt="港鐵路綫圖" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80';">
+                    </a>
+                </div>
+                <p style="text-align: center; font-size: 12px; opacity: 0.6; margin-top: 8px;">👆 點擊圖片可直接開啟港鐵官方完整 PDF 路綫圖</p>
             </div>
 
             <!-- 搜尋結果展示區 -->
@@ -379,26 +415,10 @@
             <div class="card">
                 <h3>🗺️ 港鐵路綫快速指南</h3>
                 <p style="font-size: 13px; opacity: 0.8; margin-bottom: 15px;">主要轉車站及核心轉線資訊：</p>
-                
-                <div class="map-line-box">
-                    <strong>🔴 紅色：荃灣綫 (TWL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">中環 ⟷ 金鐘 ⟷ 旺角 ⟷ 太子 ⟷ 荃灣</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🔵 藍色：港島綫 (ISL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">堅尼地城 ⟷ 金鐘 ⟷ 中環 ⟷ 北角 ⟷ 柴灣</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🟢 綠色：觀塘綫 (KTL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">黃埔 ⟷ 油麻地 ⟷ 九龍塘 ⟷ 鑽石山 ⟷ 調景嶺</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🟤 啡色：屯馬綫 (TML)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">烏溪沙 ⟷ 大圍 ⟷ 鑽石山 ⟷ 何文田 ⟷ 紅磡 ⟷ 屯門</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🩵 青色：東鐵綫 (EAL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">金鐘 ⟷ 會展 ⟷ 紅磡 ⟷ 九龍塘 ⟷ 大圍 ⟷ 上水 ⟷ 羅湖/落馬洲</span>
+                <div class="map-preview-container" style="margin-bottom: 15px;">
+                    <a href="https://www.mtr.com.hk/archive/ch/services/routemap.pdf" target="_blank">
+                        <img src="https://www.mtr.com.hk/ch/customer/services/images/routemap_L.jpg" alt="港鐵路綫圖">
+                    </a>
                 </div>
             </div>
         </div>
@@ -414,66 +434,66 @@
     </div>
 
     <script>
-        const mtrDatabase = {
-            "TWL": [
-                { code: "CEN", name: "中環 (Central)" }, { code: "ADM", name: "金鐘 (Admiralty)" },
-                { code: "TST", name: "尖沙咀 (Tsim Sha Tsui)" }, { code: "JOR", name: "佐敦 (Jordan)" },
-                { code: "YMT", name: "油麻地 (Yau Ma Tei)" }, { code: "MOK", name: "旺角 (Mong Kok)" },
-                { code: "PRE", name: "太子 (Prince Edward)" }, { code: "SSP", name: "深水埗 (Sham Shui Po)" },
-                { code: "CSW", name: "長沙灣 (Cheung Sha Wan)" }, { code: "LCK", name: "荔枝角 (Lai Chi Kok)" },
-                { code: "MEF", name: "美孚 (Mei Foo)" }, { code: "LAK", name: "荔景 (Lai King)" },
-                { code: "KWF", name: "葵芳 (Kwai Fong)" }, { code: "KWH", name: "葵興 (Kwai Hing)" },
-                { code: "TWH", name: "大窩口 (Tai Wo Hau)" }, { code: "TSW", name: "荃灣 (Tsuen Wan)" }
-            ],
-            "ISL": [
-                { code: "KET", name: "堅尼地城 (Kennedy Town)" }, { code: "HKU", name: "香港大學 (HKU)" },
-                { code: "SYP", name: "西營盤 (Sai Ying Pun)" }, { code: "SHW", name: "上環 (Sheung Wan)" },
-                { code: "CEN", name: "中環 (Central)" }, { code: "ADM", name: "金鐘 (Admiralty)" },
-                { code: "WAC", name: "灣仔 (Wan Chai)" }, { code: "CAB", name: "銅鑼灣 (Causeway Bay)" },
-                { code: "TIH", name: "天后 (Tin Hau)" }, { code: "FOH", name: "炮台山 (Fortress Hill)" },
-                { code: "NOP", name: "北角 (North Point)" }, { code: "QUB", name: "鰂魚涌 (Quarry Bay)" },
-                { code: "TAK", name: "太古 (Tai Koo)" }, { code: "SWH", name: "西灣河 (Sai Wan Ho)" },
-                { code: "SKW", name: "筲箕灣 (Shau Kei Wan)" }, { code: "HFC", name: "杏花邨 (Heng Fa Chuen)" },
-                { code: "CHW", name: "柴灣 (Chai Wan)" }
-            ],
-            "KTL": [
-                { code: "WHA", name: "黃埔 (Whampoa)" }, { code: "HOM", name: "何文田 (Ho Man Tin)" },
-                { code: "YMT", name: "油麻地 (Yau Ma Tei)" }, { code: "MOK", name: "旺角 (Mong Kok)" },
-                { code: "PRE", name: "太子 (Prince Edward)" }, { code: "SKM", name: "石硤尾 (Shek Kip Mei)" },
-                { code: "KOT", name: "九龍塘 (Kowloon Tong)" }, { code: "LOF", name: "樂富 (Lok Fu)" },
-                { code: "WTS", name: "黃大仙 (Wong Tai Sin)" }, { code: "DIH", name: "鑽石山 (Diamond Hill)" },
-                { code: "CHH", name: "彩虹 (Choi Hung)" }, { code: "KOB", name: "九龍灣 (Kowloon Bay)" },
-                { code: "NTK", name: "牛頭角 (Ngau Tau Kok)" }, { code: "KWT", name: "觀塘 (Kwun Tong)" },
-                { code: "LAT", name: "藍田 (Lam Tin)" }, { code: "YAT", name: "油塘 (Yau Tong)" },
-                { code: "TIK", name: "調景嶺 (Tiu Keng Leng)" }
-            ],
-            "TML": [
-                { code: "WKS", name: "烏溪沙 (Wu Kai Sha)" }, { code: "MOS", name: "馬鞍山 (Ma On Shan)" },
-                { code: "HEO", name: "恆安 (Heng On)" }, { code: "TSH", name: "大水坑 (Tai Shui Hang)" },
-                { code: "SHM", name: "石門 (Shek Mun)" }, { code: "CIO", name: "第一城 (City One)" },
-                { code: "STW", name: "沙田圍 (Sha Tin Wai)" }, { code: "CKT", name: "車公廟 (Che Kung Temple)" },
-                { code: "TAW", name: "大圍 (Tai Wai)" }, { code: "HIK", name: "顯徑 (Hin Keng)" },
-                { code: "DIH", name: "鑽石山 (Diamond Hill)" }, { code: "KAT", name: "啟德 (Kai Tak)" },
-                { code: "SUW", name: "宋皇臺 (Sung Wong Toi)" }, { code: "TKW", name: "土瓜灣 (To Kwa Wan)" },
-                { code: "HOM", name: "何文田 (Ho Man Tin)" }, { code: "HUH", name: "紅磡 (Hung Hom)" },
-                { code: "ETS", name: "尖東 (East Tsim Sha Tsui)" }, { code: "AUS", name: "柯士甸 (Austin)" },
-                { code: "NAC", name: "南昌 (Nam Cheong)" }, { code: "MEF", name: "美孚 (Mei Foo)" },
-                { code: "TWW", name: "荃灣西 (Tsuen Wan West)" }, { code: "KSR", name: "錦上路 (Kam Sheung Road)" },
-                { code: "YUL", name: "元朗 (Yuen Long)" }, { code: "LOP", name: "朗屏 (Long Ping)" },
-                { code: "TSI", name: "天水圍 (Tin Shui Wai)" }, { code: "SIH", name: "兆康 (Siu Kang)" },
-                { code: "TUM", name: "屯門 (Tuen Mun)" }
-            ],
-            "EAL": [
-                { code: "ADM", name: "金鐘 (Admiralty)" }, { code: "EXC", name: "會展 (Exhibition Centre)" },
-                { code: "HUH", name: "紅磡 (Hung Hom)" }, { code: "MKK", name: "旺角東 (Mong Kok East)" },
-                { code: "KOT", name: "九龍塘 (Kowloon Tong)" }, { code: "SHT", name: "沙田 (Sha Tin)" },
-                { code: "FTN", name: "火炭 (Fo Tan)" }, { code: "RAC", name: "馬場 (Racecourse)" },
-                { code: "UNI", name: "大學 (University)" }, { code: "TAP", name: "大埔墟 (Tai Po Market)" },
-                { code: "TWO", name: "太和 (Tai Wo)" }, { code: "FAN", name: "粉嶺 (Fanling)" },
-                { code: "SHS", name: "上水 (Sheung Shui)" }, { code: "LOW", name: "羅湖 (Lo Wu)" },
-                { code: "LMC", name: "落馬洲 (Lok Ma Chau)" }
-            ]
-        };
+        // 完整港鐵車站總資料庫（連帶所屬路綫與英文名稱方便過濾）
+        const allStationsDatabase = [
+            // 荃灣綫 TWL
+            { line: "TWL", code: "CEN", name: "中環 (Central)" }, { line: "TWL", code: "ADM", name: "金鐘 (Admiralty)" },
+            { line: "TWL", code: "TST", name: "尖沙咀 (Tsim Sha Tsui)" }, { line: "TWL", code: "JOR", name: "佐敦 (Jordan)" },
+            { line: "TWL", code: "YMT", name: "油麻地 (Yau Ma Tei)" }, { line: "TWL", code: "MOK", name: "旺角 (Mong Kok)" },
+            { line: "TWL", code: "PRE", name: "太子 (Prince Edward)" }, { line: "TWL", code: "SSP", name: "深水埗 (Sham Shui Po)" },
+            { line: "TWL", code: "CSW", name: "長沙灣 (Cheung Sha Wan)" }, { line: "TWL", code: "LCK", name: "荔枝角 (Lai Chi Kok)" },
+            { line: "TWL", code: "MEF", name: "美孚 (Mei Foo)" }, { line: "TWL", code: "LAK", name: "荔景 (Lai King)" },
+            { line: "TWL", code: "KWF", name: "葵芳 (Kwai Fong)" }, { line: "TWL", code: "KWH", name: "葵興 (Kwai Hing)" },
+            { line: "TWL", code: "TWH", name: "大窩口 (Tai Wo Hau)" }, { line: "TWL", code: "TSW", name: "荃灣 (Tsuen Wan)" },
+            
+            // 港島綫 ISL
+            { line: "ISL", code: "KET", name: "堅尼地城 (Kennedy Town)" }, { line: "ISL", code: "HKU", name: "香港大學 (HKU)" },
+            { line: "ISL", code: "SYP", name: "西營盤 (Sai Ying Pun)" }, { line: "ISL", code: "SHW", name: "上環 (Sheung Wan)" },
+            { line: "ISL", code: "CEN", name: "中環 (Central)" }, { line: "ISL", code: "ADM", name: "金鐘 (Admiralty)" },
+            { line: "ISL", code: "WAC", name: "灣仔 (Wan Chai)" }, { line: "ISL", code: "CAB", name: "銅鑼灣 (Causeway Bay)" },
+            { line: "ISL", code: "TIH", name: "天后 (Tin Hau)" }, { line: "ISL", code: "FOH", name: "炮台山 (Fortress Hill)" },
+            { line: "ISL", code: "NOP", name: "北角 (North Point)" }, { line: "ISL", code: "QUB", name: "鰂魚涌 (Quarry Bay)" },
+            { line: "ISL", code: "TAK", name: "太古 (Tai Koo)" }, { line: "ISL", code: "SWH", name: "西灣河 (Sai Wan Ho)" },
+            { line: "ISL", code: "SKW", name: "筲箕灣 (Shau Kei Wan)" }, { line: "ISL", code: "HFC", name: "杏花邨 (Heng Fa Chuen)" },
+            { line: "ISL", code: "CHW", name: "柴灣 (Chai Wan)" },
+
+            // 觀塘綫 KTL
+            { line: "KTL", code: "WHA", name: "黃埔 (Whampoa)" }, { line: "KTL", code: "HOM", name: "何文田 (Ho Man Tin)" },
+            { line: "KTL", code: "YMT", name: "油麻地 (Yau Ma Tei)" }, { line: "KTL", code: "MOK", name: "旺角 (Mong Kok)" },
+            { line: "KTL", code: "PRE", name: "太子 (Prince Edward)" }, { line: "KTL", code: "SKM", name: "石硤尾 (Shek Kip Mei)" },
+            { line: "KTL", code: "KOT", name: "九龍塘 (Kowloon Tong)" }, { line: "KTL", code: "LOF", name: "樂富 (Lok Fu)" },
+            { line: "KTL", code: "WTS", name: "黃大仙 (Wong Tai Sin)" }, { line: "KTL", code: "DIH", name: "鑽石山 (Diamond Hill)" },
+            { line: "KTL", code: "CHH", name: "彩虹 (Choi Hung)" }, { line: "KTL", code: "KOB", name: "九龍灣 (Kowloon Bay)" },
+            { line: "KTL", code: "NTK", name: "牛頭角 (Ngau Tau Kok)" }, { line: "KTL", code: "KWT", name: "觀塘 (Kwun Tong)" },
+            { line: "KTL", code: "LAT", name: "藍田 (Lam Tin)" }, { line: "KTL", code: "YAT", name: "油塘 (Yau Tong)" },
+            { line: "KTL", code: "TIK", name: "調景嶺 (Tiu Keng Leng)" },
+
+            // 東鐵綫 EAL
+            { line: "EAL", code: "ADM", name: "金鐘 (Admiralty)" }, { line: "EAL", code: "EXC", name: "會展 (Exhibition Centre)" },
+            { line: "EAL", code: "HUH", name: "紅磡 (Hung Hom)" }, { line: "EAL", code: "MKK", name: "旺角東 (Mong Kok East)" },
+            { line: "EAL", code: "KOT", name: "九龍塘 (Kowloon Tong)" }, { line: "EAL", code: "SHT", name: "沙田 (Sha Tin)" },
+            { line: "EAL", code: "FTN", name: "火炭 (Fo Tan)" }, { line: "EAL", code: "RAC", name: "馬場 (Racecourse)" },
+            { line: "EAL", code: "UNI", name: "大學 (University)" }, { line: "EAL", code: "TAP", name: "大埔墟 (Tai Po Market)" },
+            { line: "EAL", code: "TWO", name: "太和 (Tai Wo)" }, { line: "EAL", code: "FAN", name: "粉嶺 (Fanling)" },
+            { line: "EAL", code: "SHS", name: "上水 (Sheung Shui)" }, { line: "EAL", code: "LOW", name: "羅湖 (Lo Wu)" },
+            { line: "EAL", code: "LMC", name: "落馬洲 (Lok Ma Chau)" },
+
+            // 屯馬綫 TML
+            { line: "TML", code: "WKS", name: "烏溪沙 (Wu Kai Sha)" }, { line: "TML", code: "MOS", name: "馬鞍山 (Ma On Shan)" },
+            { line: "TML", code: "HEO", name: "恆安 (Heng On)" }, { line: "TML", code: "TSH", name: "大水坑 (Tai Shui Hang)" },
+            { line: "TML", code: "SHM", name: "石門 (Shek Mun)" }, { line: "TML", code: "CIO", name: "第一城 (City One)" },
+            { line: "TML", code: "STW", name: "沙田圍 (Sha Tin Wai)" }, { line: "TML", code: "CKT", name: "車公廟 (Che Kung Temple)" },
+            { line: "TML", code: "TAW", name: "大圍 (Tai Wai)" }, { line: "TML", code: "HIK", name: "顯徑 (Hin Keng)" },
+            { line: "TML", code: "DIH", name: "鑽石山 (Diamond Hill)" }, { line: "TML", code: "KAT", name: "啟德 (Kai Tak)" },
+            { line: "TML", code: "SUW", name: "宋皇臺 (Sung Wong Toi)" }, { line: "TML", code: "TKW", name: "土瓜灣 (To Kwa Wan)" },
+            { line: "TML", code: "HOM", name: "何文田 (Ho Man Tin)" }, { line: "TML", code: "HUH", name: "紅磡 (Hung Hom)" },
+            { line: "TML", code: "ETS", name: "尖東 (East Tsim Sha Tsui)" }, { line: "TML", code: "AUS", name: "柯士甸 (Austin)" },
+            { line: "TML", code: "NAC", name: "南昌 (Nam Cheong)" }, { line: "TML", code: "MEF", name: "美孚 (Mei Foo)" },
+            { line: "TML", code: "TWW", name: "荃灣西 (Tsuen Wan West)" }, { line: "TML", code: "KSR", name: "錦上路 (Kam Sheung Road)" },
+            { line: "TML", code: "YUL", name: "元朗 (Yuen Long)" }, { line: "TML", code: "LOP", name: "朗屏 (Long Ping)" },
+            { line: "TML", code: "TSI", name: "天水圍 (Tin Shui Wai)" }, { line: "TML", code: "SIH", name: "兆康 (Siu Kang)" },
+            { line: "TML", code: "TUM", name: "屯門 (Tuen Mun)" }
+        ];
 
         let pinnedList = [];
 
@@ -520,19 +540,38 @@
             }
         }
 
-        function updateStationOptions() {
-            const lineSelect = document.getElementById('lineSelect').value;
-            const stationSelect = document.getElementById('stationSelect');
-            stationSelect.innerHTML = `<option value="" disabled selected>-- 請選擇車站 --</option>`;
-
-            if (mtrDatabase[lineSelect]) {
-                mtrDatabase[lineSelect].forEach(station => {
-                    let opt = document.createElement('option');
-                    opt.value = station.code;
-                    opt.text = station.name;
-                    stationSelect.appendChild(opt);
-                });
+        // 智能打字過濾建議
+        function filterStations(query) {
+            const listContainer = document.getElementById('suggestionsList');
+            if (!query.trim()) {
+                listContainer.style.display = 'none';
+                return;
             }
+
+            const matched = allStationsDatabase.filter(s => s.name.toLowerCase().includes(query.toLowerCase()) || s.code.toLowerCase().includes(query.toLowerCase()));
+            
+            if (matched.length === 0) {
+                listContainer.style.display = 'none';
+                return;
+            }
+
+            let html = "";
+            matched.forEach(item => {
+                let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "TML": "屯馬綫", "EAL": "東鐵綫" };
+                let lineName = lineNameMap[item.line] || item.line;
+                html += `<div class="suggestion-item" onclick="selectStation('${item.line}', '${item.code}', '${item.name.split(' ')[0]}')">${item.name} <span style="opacity: 0.6; font-size: 12px;">[${lineName}]</span></div>`;
+            });
+
+            listContainer.innerHTML = html;
+            listContainer.style.display = 'block';
+        }
+
+        function selectStation(line, code, name) {
+            document.getElementById('stationSearchInput').value = `${name} (${line})`;
+            document.getElementById('selectedLine').value = line;
+            document.getElementById('selectedStationCode').value = code;
+            document.getElementById('selectedStationName').value = name;
+            document.getElementById('suggestionsList').style.display = 'none';
         }
 
         function translateDestination(destCode) {
@@ -581,7 +620,7 @@
             const container = document.getElementById('pinnedStationsContainer');
             
             if (pinnedList.length === 0) {
-                container.innerHTML = `<div class="card" style="text-align: center;"><p>⭐ 你目前未有任何釘選站！</p><p style="font-size: 13px; opacity: 0.6;">去「搜尋全港車站」可以加返個站落嚟～</p></div>`;
+                container.innerHTML = `<div class="card" style="text-align: center;"><p>⭐ 你目前未有任何釘選站！</p><p style="font-size: 13px; opacity: 0.6;">去「搜尋全港車站」可以用打字加返個站落嚟～</p></div>`;
                 return;
             }
 
@@ -625,22 +664,20 @@
                 container.innerHTML = htmlContent;
             } catch (error) {
                 console.error("取得港鐵數據失敗:", error);
-                container.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">⚠️ 網絡連接發生錯誤，正嘗試自動重新整理...</p></div>`;
+                container.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">⚠️ 網絡連接發生錯誤...</p></div>`;
             }
         }
 
-        async function searchStationTime() {
-            const line = document.getElementById('lineSelect').value;
-            const stationCode = document.getElementById('stationSelect').value;
+        async function searchStationTimeFromInput() {
+            const line = document.getElementById('selectedLine').value;
+            const stationCode = document.getElementById('selectedStationCode').value;
+            const stationFullName = document.getElementById('selectedStationName').value;
             const resultContainer = document.getElementById('searchResultContainer');
 
             if (!line || !stationCode) {
-                alert("⚠️ 請先選擇鐵路綫及車站！");
+                alert("⚠️ 請先在輸入框中打字並從選單中點選一個車站！");
                 return;
             }
-
-            const stationDropdown = document.getElementById('stationSelect');
-            const stationFullName = stationDropdown.options[stationDropdown.selectedIndex].text;
 
             resultContainer.innerHTML = `<div class="card"><p style="text-align: center;">⏳ 正在查詢 ${stationFullName} 實時資料...</p></div>`;
 
@@ -663,7 +700,6 @@
 
                             htmlContent += `<div class="direction-title">往 ${destName} 方向</div>`;
 
-                            // 檢視頭 4 程車，改用精美卡片行排列（不顯示月台）
                             platform.slice(0, 4).forEach((train) => {
                                 const arrivalInfo = formatArrivalTime(train.time);
                                 htmlContent += `
