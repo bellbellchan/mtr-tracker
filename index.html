@@ -355,19 +355,19 @@
             return destMap[destCode] || destCode;
         }
 
-        // 同時顯示「幾多分鐘後」同「hh:mm」時間
+        // 將時間統一處理好
         function formatArrivalTime(rawTime) {
-            if (rawTime === undefined || rawTime === null) return "暫無資料";
+            if (rawTime === undefined || rawTime === null) return { text: "暫無資料", timeStr: "" };
 
             let arrivalDate;
             let num = Number(rawTime);
 
             if (!isNaN(num)) {
-                if (num <= 0) return "已到達";
+                if (num <= 0) return { text: "已到達", timeStr: "" };
                 arrivalDate = new Date(new Date().getTime() + num * 60000);
                 let hours = String(arrivalDate.getHours()).padStart(2, '0');
                 let minutes = String(arrivalDate.getMinutes()).padStart(2, '0');
-                return `${num} 分鐘後 (${hours}:${minutes})`;
+                return { text: `${num} 分鐘後`, timeStr: `${hours}:${minutes}` };
             } else {
                 arrivalDate = new Date(rawTime.replace(/-/g, "/"));
                 let now = new Date();
@@ -375,11 +375,11 @@
                 let diffMins = Math.round(diffMs / 60000);
 
                 if (isNaN(arrivalDate.getTime()) || diffMins <= 0) {
-                    return "已到達";
+                    return { text: "已到達", timeStr: "" };
                 }
                 let hours = String(arrivalDate.getHours()).padStart(2, '0');
                 let minutes = String(arrivalDate.getMinutes()).padStart(2, '0');
-                return `${diffMins} 分鐘後 (${hours}:${minutes})`;
+                return { text: `${diffMins} 分鐘後`, timeStr: `${hours}:${minutes}` };
             }
         }
 
@@ -387,7 +387,7 @@
             const container = document.getElementById('pinnedStationsContainer');
             
             if (pinnedList.length === 0) {
-                container.innerHTML = `<div class="card" style="text-align: center;"><p>⭐ 你目前未有任何釘選站！</p><p style="font-size: 13px; opacity: 0.6;">去「搜尋全港車站」可以再加返架～</p></div>`;
+                container.innerHTML = `<div class="card" style="text-align: center;"><p>⭐ 你目前未有任何釘選站！</p><p style="font-size: 13px; opacity: 0.6;">去<span>「搜尋全港車站」</span>可以再加返架～</p></div>`;
                 return;
             }
 
@@ -411,12 +411,13 @@
                             if (stationData[dir] && stationData[dir].length > 0) {
                                 const platform = stationData[dir];
                                 const destName = translateDestination(platform[0].dest);
-                                const timeText = formatArrivalTime(platform[0].time);
+                                const arrivalInfo = formatArrivalTime(platform[0].time);
 
+                                // 將時間同「往 xx 方向」擺喺左邊，幾多分鐘後擺喺右邊 badge
                                 htmlContent += `
                                     <div class="train-row">
-                                        <span><strong>往 ${destName} 方向</strong></span>
-                                        <span class="time-badge">${timeText}</span>
+                                        <span><strong>往 ${destName} 方向</strong> <span style="opacity: 0.7; font-size: 13px; margin-left: 6px;">${arrivalInfo.timeStr}</span></span>
+                                        <span class="time-badge">${arrivalInfo.text}</span>
                                     </div>
                                 `;
                             }
