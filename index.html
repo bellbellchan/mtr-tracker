@@ -311,7 +311,6 @@
     </div>
 
     <script>
-        // 預設你的釘選站（使用陣列儲存，方便隨時新增或刪除）
         let pinnedList = [
             { id: "TWL-MOK", line: "TWL", station: "MOK", name: "旺角站 (Mong Kok) - 荃灣綫" },
             { id: "ISL-ADM", line: "ISL", station: "ADM", name: "金鐘站 (Admiralty) - 港島綫" }
@@ -338,13 +337,11 @@
             localStorage.setItem('mtr_theme', themeName);
         }
 
-        // 取消 Pin 功能
         function removePin(id) {
             pinnedList = pinnedList.filter(item => item.id !== id);
-            fetchMTRData(); // 重新整理畫面
+            fetchMTRData();
         }
 
-        // 將英文目的地代碼轉換為中文
         function translateDestination(destCode) {
             const destMap = {
                 "CEN": "中環",
@@ -386,12 +383,19 @@
                                 const platform = stationData[dir];
                                 const destName = translateDestination(platform[0].dest);
                                 const timeMinutes = platform[0].time;
-                                const platNum = platform[0].plat || "-"; // 取得月台編號
+                                
+                                // 判斷是否已到達 (time 為 0 或負數，或 API 回傳特定狀態)
+                                let timeText = "";
+                                if (timeMinutes <= 0) {
+                                    timeText = "已到達";
+                                } else {
+                                    timeText = `${timeMinutes} 分鐘後到達`;
+                                }
 
                                 htmlContent += `
                                     <div class="train-row">
-                                        <span><strong>月台 ${platNum}</strong> ｜ 往 ${destName}</span>
-                                        <span class="time-badge">${timeMinutes} 分鐘後到達</span>
+                                        <span><strong>往 ${destName}</strong></span>
+                                        <span class="time-badge">${timeText}</span>
                                     </div>
                                 `;
                             }
