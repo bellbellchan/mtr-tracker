@@ -348,22 +348,24 @@
                 "CEN": "中環",
                 "TSW": "荃灣",
                 "CHW": "柴灣",
-                    "KET": "堅尼地城",
+                "KET": "堅尼地城",
                 "NOP": "北角",
                 "QUB": "鰂魚涌"
             };
             return destMap[destCode] || destCode;
         }
 
-        // 準確修正剩餘分鐘與時間對齊
+        // 精準修復：只有真係到咗或過咗嘅先叫「已到達」，未來嘅嚴格顯示「幾分鐘後」
         function formatArrivalTime(rawTime) {
             if (rawTime === undefined || rawTime === null) return { text: "暫無資料", timeStr: "" };
 
             let arrivalDate;
             let num = Number(rawTime);
+            let now = new Date();
 
             if (!isNaN(num)) {
-                arrivalDate = new Date(new Date().getTime() + num * 60000);
+                // 如果 API 直接畀數字 (例如 0, 1, 2)
+                arrivalDate = new Date(now.getTime() + num * 60000);
                 let hours = String(arrivalDate.getHours()).padStart(2, '0');
                 let minutes = String(arrivalDate.getMinutes()).padStart(2, '0');
                 let timeStr = `${hours}:${minutes}`;
@@ -371,11 +373,10 @@
                 let text = num <= 0 ? "已到達" : `${num} 分鐘後`;
                 return { text: text, timeStr: timeStr };
             } else {
+                // 如果 API 畀時間字串 (例如 "2026-03-27 20:50:00")
                 arrivalDate = new Date(rawTime.replace(/-/g, "/"));
-                let now = new Date();
                 let diffMs = arrivalDate - now;
-                // 改用 Math.floor 避免未夠 1 分鐘就被四捨五入上去 1 分鐘
-                let diffMins = Math.floor(diffMs / 60000);
+                let diffMins = Math.ceil(diffMs / 60000); // 向上取整，確保夠鐘先跌落嚟
 
                 if (isNaN(arrivalDate.getTime())) {
                     return { text: "暫無資料", timeStr: "" };
@@ -385,6 +386,7 @@
                 let minutes = String(arrivalDate.getMinutes()).padStart(2, '0');
                 let timeStr = `${hours}:${minutes}`;
 
+                // 嚴格判斷：如果剩餘分鐘數 <= 0 先係已到達，否則一定顯示幾多分鐘後
                 let text = diffMins <= 0 ? "已到達" : `${diffMins} 分鐘後`;
                 return { text: text, timeStr: timeStr };
             }
