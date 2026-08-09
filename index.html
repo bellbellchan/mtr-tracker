@@ -354,6 +354,28 @@
             return destMap[destCode] || destCode;
         }
 
+        // 處理港鐵回傳時間的函數（強制轉換或計算剩餘分鐘）
+        function formatTrainTime(rawTime) {
+            if (rawTime === undefined || rawTime === null) return "暫無資料";
+
+            // 如果本身已經係數字或者可以轉化為數字（代表剩餘分鐘）
+            let num = Number(rawTime);
+            if (!isNaN(num)) {
+                if (num <= 0) return "已到達";
+                return `${num} 分鐘後到達`;
+            }
+
+            // 如果係日期時間字串（例如 "2026-08-09 20:42:00"）
+            let trainDate = new Date(rawTime.replace(/-/g, "/")); // 兼容 safari
+            let now = new Date();
+            let diffMinutes = Math.round((trainDate - now) / 60000);
+
+            if (isNaN(diffMinutes) || diffMinutes <= 0) {
+                return "已到達";
+            }
+            return `${diffMinutes} 分鐘後到達`;
+        }
+
         async function fetchMTRData() {
             const container = document.getElementById('pinnedStationsContainer');
             
@@ -382,15 +404,7 @@
                             if (stationData[dir] && stationData[dir].length > 0) {
                                 const platform = stationData[dir];
                                 const destName = translateDestination(platform[0].dest);
-                                const timeMinutes = platform[0].time;
-                                
-                                // 判斷是否已到達 (time 為 0 或負數，或 API 回傳特定狀態)
-                                let timeText = "";
-                                if (timeMinutes <= 0) {
-                                    timeText = "已到達";
-                                } else {
-                                    timeText = `${timeMinutes} 分鐘後到達`;
-                                }
+                                const timeText = formatTrainTime(platform[0].time);
 
                                 htmlContent += `
                                     <div class="train-row">
