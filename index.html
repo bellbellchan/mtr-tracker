@@ -186,6 +186,33 @@
             box-sizing: border-box;
         }
 
+        /* 搜尋建議下拉列表 */
+        .search-suggestions {
+            background-color: var(--row-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
         /* 遮罩背景 */
         .overlay {
             position: fixed;
@@ -350,6 +377,12 @@
         <div id="page-search" class="page-content">
             <div class="card">
                 <h3>🔍 搜尋全港車站候車時間</h3>
+                
+                <!-- 新增：直接打字搵站 -->
+                <label for="stationSearchInput">直接打字搵站：</label>
+                <input type="text" id="stationSearchInput" placeholder="例如：金鐘、旺角、中環..." oninput="filterStationsByText(this.value)">
+                <div id="searchSuggestions" class="search-suggestions"></div>
+
                 <label for="lineSelect">選擇鐵路綫：</label>
                 <select id="lineSelect" onchange="updateStationOptions()">
                     <option value="" disabled selected>-- 請選擇鐵路綫 --</option>
@@ -362,10 +395,6 @@
                     <option value="TML">屯馬綫 (TML)</option>
                     <option value="TCL">東涌綫 (TCL)</option>
                 </select>
-
-                <!-- 🆕 新增：打字尋找車站文字框 -->
-                <label for="stationSearchInput">打字過濾車站 (中/英文)：</label>
-                <input type="text" id="stationSearchInput" placeholder="例如：金鐘、Central..." oninput="filterStations()">
 
                 <label for="stationSelect">選擇車站：</label>
                 <select id="stationSelect">
@@ -481,7 +510,6 @@
         };
 
         let pinnedList = [];
-        let currentLineStations = []; // 儲存當前綫路的車站方便過濾
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
@@ -526,49 +554,67 @@
             }
         }
 
-        // 渲染車站選單的通用函數
-        function renderStationOptions(stations) {
-            const stationSelect = document.getElementById('stationSelect');
-            stationSelect.innerHTML = `<option value="" disabled selected>-- 請選擇車站 --</option>`;
-            stations.forEach(station => {
-                let opt = document.createElement('option');
-                opt.value = station.code;
-                opt.text = station.name;
-                stationSelect.appendChild(opt);
-            });
-        }
-
         function updateStationOptions() {
             const lineSelect = document.getElementById('lineSelect').value;
-            const searchInput = document.getElementById('stationSearchInput');
-            
-            // 清空打字搜尋框
-            searchInput.value = '';
+            const stationSelect = document.getElementById('stationSelect');
+            stationSelect.innerHTML = `<option value="" disabled selected>-- 請選擇車站 --</option>`;
 
             if (mtrDatabase[lineSelect]) {
-                currentLineStations = mtrDatabase[lineSelect];
-                renderStationOptions(currentLineStations);
-            } else {
-                currentLineStations = [];
-                document.getElementById('stationSelect').innerHTML = `<option value="" disabled selected>-- 請先選擇鐵路綫 --</option>`;
+                mtrDatabase[lineSelect].forEach(station => {
+                    let opt = document.createElement('option');
+                    opt.value = station.code;
+                    opt.text = station.name;
+                    stationSelect.appendChild(opt);
+                });
             }
         }
 
-        // 🆕 打字過濾車站邏輯
-        function filterStations() {
-            const keyword = document.getElementById('stationSearchInput').value.trim().toLowerCase();
+        /* 💡 新增：處理直接打字搜尋及過濾車站功能 */
+        function filterStationsByText(keyword) {
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+            suggestionsContainer.innerHTML = '';
             
-            if (!keyword) {
-                renderStationOptions(currentLineStations);
+            if (!keyword.trim()) {
+                suggestionsContainer.style.display = 'none';
                 return;
             }
 
-            const filtered = currentLineStations.filter(station => 
-                station.name.toLowerCase().includes(keyword) || 
-                station.code.toLowerCase().includes(keyword)
-            );
+            let matches = [];
+            const lineNames = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "TML": "屯馬綫", "EAL": "東鐵綫" };
 
-            renderStationOptions(filtered);
+            for (let line in mtrDatabase) {
+                mtrDatabase[line].forEach(station => {
+                    if (station.name.toLowerCase().includes(keyword.toLowerCase())) {
+                        // 避免同一條綫重複加（如果有的話），記錄低
+                        matches.push({
+                            line: line,
+                            lineName: lineNames[line] || line,
+                            code: station.code,
+                            name: station.name
+                        });
+                    }
+                });
+            }
+
+            if (matches.length > 0) {
+                suggestionsContainer.style.display = 'block';
+                matches.forEach(item => {
+                    let div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.innerText = `${item.name} [${item.lineName}]`;
+                    div.onclick = function() {
+                        // 自動幫使用者揀好線路同車站
+                        document.getElementById('lineSelect').value = item.line;
+                        updateStationOptions();
+                        document.getElementById('stationSelect').value = item.code;
+                        document.getElementById('stationSearchInput').value = item.name.split(' ')[0]; // 填入簡稱
+                        suggestionsContainer.style.display = 'none';
+                    };
+                    suggestionsContainer.appendChild(div);
+                });
+            } else {
+                suggestionsContainer.style.display = 'none';
+            }
         }
 
         function translateDestination(destCode) {
