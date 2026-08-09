@@ -17,16 +17,15 @@ select { width: 100%; padding: 12px; border: 2px solid var(--border-color); bord
 button { width: 100%; padding: 12px; background-color: var(--primary-green); color: white; border: none; border-radius: 16px; font-size: 0.95rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #549f7a; text-shadow: 1px 1px 0px #549f7a; margin-top: 6px; }
 button:active { transform: translateY(2px); box-shadow: 0 2px 0 #549f7a; }
 .btn-pin { background-color: #e5a952; box-shadow: 0 4px 0 #c28d3f; text-shadow: 1px 1px 0px #c28d3f; }
-.btn-pin:active { box-shadow: 0 2px 0 #c28d3f; }
 .pinned-card { background: #faf6ee; border: 2px solid #e2d3be; border-radius: 16px; padding: 12px; margin-bottom: 12px; position: relative; }
 .pinned-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 2px dashed #e5d9c5; padding-bottom: 6px; }
 .pinned-title { font-weight: bold; font-size: 1rem; color: #614c3b; }
-.btn-unpin-single { background-color: #e57373; color: white; border: none; border-radius: 10px; padding: 4px 10px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 0 #c65353; text-shadow: none; width: auto; margin: 0; }
-.btn-unpin-single:active { transform: translateY(1px); box-shadow: 0 1px 0 #c65353; }
+.btn-unpin-single { background-color: #e57373; color: white; border: none; border-radius: 10px; padding: 4px 10px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 0 #c65353; width: auto; margin: 0; }
 .dir-title { font-size: 0.9rem; font-weight: bold; color: #7c624d; margin-bottom: 4px; background: #f0e6d2; padding: 3px 8px; border-radius: 8px; display: inline-block; }
 .eta-route { background: #ffffff; border: 2px solid #eef2e6; padding: 8px 12px; border-radius: 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
 .eta-time { font-weight: bold; font-size: 1rem; color: #4caf50; }
 .eta-time.imminent { color: #e57373; animation: blink 1s infinite; }
+.eta-time.departed { color: #b5a496; font-size: 0.9rem; }
 @keyframes blink { 50% { opacity: 0.6; } }
 .loading { text-align: center; color: #a18e7e; padding: 15px 0; font-weight: bold; font-size: 0.9rem; }
 .update-time { font-size: 0.7rem; color: #b5a496; text-align: right; margin-top: 4px; }
@@ -76,7 +75,8 @@ const mtrData = { KTL: { name: "觀塘綫", stations: { WHA:"黃埔", HOM:"何�
 let refreshTimer = null;
 
 function formatDiffText(diffSecs) { 
-  if (diffSecs <= 10) return "已到站 / 剛開出 🚪"; 
+  if (diffSecs < -15) return "已開出 💨";
+  if (diffSecs <= 15) return "已到站 🟢"; 
   const diffMins = Math.ceil(diffSecs / 60);
   if (diffMins === 1) return "1 分鐘";
   if (diffMins >= 60) { 
@@ -127,7 +127,7 @@ async function fetchETAForPreview(line, station, stationName, lineName) {
       } 
       if (!hasData) etaResults.innerHTML = "<div class='loading'>💤 呢個車站依家休息緊。</div>"; 
     } else { 
-      etaResults.innerHTML = "<div class='loading'>🌱 暫時未有此車站的班次。</div>"; 
+      etaResults.innerHTML = "<div class='loading'>🌱 暫時未有此車站的班次（可能非服務時間）。</div>"; 
     } 
   } catch (error) { 
     etaResults.innerHTML = "<div class='loading'>❌ 聯絡失敗，請稍後再試。</div>"; 
@@ -155,7 +155,6 @@ function pinCurrentStation() {
   let pinnedList = JSON.parse(localStorage.getItem('pinned_stations') || '[]');
   const newItem = { line: lineSelect.value, station: stationSelect.value };
   
-  // 檢查係咪已經 Pin 過
   const exists = pinnedList.some(item => item.line === newItem.line && item.station === newItem.station);
   if (!exists) {
     pinnedList.push(newItem);
@@ -205,7 +204,9 @@ function renderDirection(trainArray, container, isPinned) {
     const diffSecs = Math.floor((trainTime - now) / 1000); 
     
     let timeDisplay = formatDiffText(diffSecs); 
-    let imminentClass = diffSecs <= 30 ? "imminent " : ""; 
+    let extraClass = "";
+    if (diffSecs <= 30 && diffSecs >= -15) extraClass = "imminent";
+    else if (diffSecs < -15) extraClass = "departed";
 
     const routeDiv = document.createElement("div"); 
     routeDiv.className = "eta-route"; 
@@ -214,7 +215,7 @@ function renderDirection(trainArray, container, isPinned) {
         <div class="dir-title" style="margin-bottom:2px;">往 ${destChinese} 方向</div>
         <div style="font-size:0.75rem; color:#b5a496;">月台 ${train.plat} | ${train.time.substring(11, 16)}</div>
       </div>
-      <div class="eta-time ${imminentClass}">${timeDisplay}</div>
+      <div class="eta-time ${extraClass}">${timeDisplay}</div>
     `; 
     container.appendChild(routeDiv); 
   });
@@ -254,7 +255,6 @@ async function loadPinnedStations() {
     `;
     container.appendChild(card);
 
-    // 非同步拎數據
     fetchAndRenderPinnedContent(line, station, `pin-content-${line}-${station}`);
   }
 }
@@ -289,14 +289,13 @@ async function fetchAndRenderPinnedContent(line, station, elementId) {
         contentDiv.appendChild(timeDiv);
       }
     } else {
-      contentDiv.innerHTML = "<div class='loading'>🌱 暫時未有此車站的班次。</div>";
+      contentDiv.innerHTML = "<div class='loading'>🌱 暫時未有此車站的班次（可能非服務時間）。</div>";
     }
   } catch (error) {
     contentDiv.innerHTML = "<div class='loading'>❌ 聯絡失敗</div>";
   }
 }
 
-// 自動定時更新
 function startAutoRefresh() {
   if (refreshTimer) clearInterval(refreshTimer);
   refreshTimer = setInterval(() => {
