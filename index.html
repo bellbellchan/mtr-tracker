@@ -219,7 +219,7 @@
             font-size: 14px;
         }
 
-        /* 搜尋結果：全新靚靚卡片行設計 */
+        /* 搜尋結果卡片行設計 */
         .direction-title {
             background-color: var(--row-bg);
             padding: 8px 12px;
@@ -287,14 +287,76 @@
             opacity: 1;
         }
 
-        /* 港鐵路綫圖簡易版面 */
-        .map-line-box {
+        /* 模式切換 Tabs */
+        .mode-switch-tabs {
+            display: flex;
+            background-color: var(--row-bg);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+        }
+        .mode-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .mode-tab.active {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+        /* 地圖選站互動按鈕網格 */
+        .map-station-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding-right: 4px;
+        }
+        .map-station-btn {
             background-color: var(--row-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
+            color: var(--text-color);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.2s;
+        }
+        .map-station-btn:hover {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+        .map-line-selector {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 8px;
             margin-bottom: 10px;
-            font-size: 14px;
+        }
+        .line-chip {
+            background-color: var(--row-bg);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .line-chip.active {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            border-color: var(--accent-color);
         }
     </style>
 </head>
@@ -317,7 +379,7 @@
 
         <div class="menu-item active" onclick="switchPage('pinned', '⭐ 我的釘選站 (Pinned)', this)">⭐ 實時候車時間 (已Pin)</div>
         <div class="menu-item" onclick="switchPage('search', '🔍 搜尋全港車站', this)">🔍 搜尋全港車站</div>
-        <div class="menu-item" onclick="switchPage('transfer', '🗺️ 港鐵路綫圖與轉車', this)">🗺️ 港鐵路綫圖與轉車</div>
+        <div class="menu-item" onclick="switchPage('transfer', '🗺️ 港鐵路綫與轉車', this)">🗺️ 港鐵路綫與轉車</div>
         <div class="menu-item" onclick="switchPage('lift', '🛗 車站地面升降機', this)">🛗 車站地面升降機</div>
 
         <div class="sidebar-section">
@@ -345,58 +407,83 @@
             <p style="text-align: center; font-size: 13px; opacity: 0.6;">💡 提示：畫面每 15 秒會在背景自動更新一次。</p>
         </div>
 
-        <!-- 頁面 2：搜尋全港車站 -->
+        <!-- 頁面 2：搜尋全港車站 (支援下拉式清單 / 互動地圖切換) -->
         <div id="page-search" class="page-content">
             <div class="card">
                 <h3>🔍 搜尋全港車站候車時間</h3>
-                <label for="lineSelect">選擇鐵路綫：</label>
-                <select id="lineSelect" onchange="updateStationOptions()">
-                    <option value="" disabled selected>-- 請選擇鐵路綫 --</option>
-                    <option value="TWL">荃灣綫 (TWL)</option>
-                    <option value="ISL">港島綫 (ISL)</option>
-                    <option value="KTL">觀塘綫 (KTL)</option>
-                    <option value="SIL">南港島綫 (SIL)</option>
-                    <option value="TKE">將軍澳綫 (TKE)</option>
-                    <option value="EAL">東鐵綫 (EAL)</option>
-                    <option value="TML">屯馬綫 (TML)</option>
-                    <option value="TCL">東涌綫 (TCL)</option>
-                </select>
+                
+                <!-- 模式切換 Tabs -->
+                <div class="mode-switch-tabs">
+                    <div id="tabDropdown" class="mode-tab active" onclick="switchSearchMode('dropdown')">📋 下拉清單選站</div>
+                    <div id="tabMap" class="mode-tab" onclick="switchSearchMode('map')">🗺️ 地圖互動選站</div>
+                </div>
 
-                <label for="stationSelect">選擇車站：</label>
-                <select id="stationSelect">
-                    <option value="" disabled selected>-- 請先選擇鐵路綫 --</option>
-                </select>
+                <!-- 模式 A：下拉式清單 -->
+                <div id="sectionDropdown">
+                    <label for="lineSelect">選擇鐵路綫：</label>
+                    <select id="lineSelect" onchange="updateStationOptions()">
+                        <option value="" disabled selected>-- 請選擇鐵路綫 --</option>
+                        <option value="TWL">荃灣綫 (TWL)</option>
+                        <option value="ISL">港島綫 (ISL)</option>
+                        <option value="KTL">觀塘綫 (KTL)</option>
+                        <option value="SIL">南港島綫 (SIL)</option>
+                        <option value="TKE">將軍澳綫 (TKE)</option>
+                        <option value="EAL">東鐵綫 (EAL)</option>
+                        <option value="TML">屯馬綫 (TML)</option>
+                        <option value="TCL">東涌綫 (TCL)</option>
+                    </select>
 
-                <button class="action-btn" onclick="searchStationTime()">立即查詢</button>
+                    <label for="stationSelect">選擇車站：</label>
+                    <select id="stationSelect">
+                        <option value="" disabled selected>-- 請先選擇鐵路綫 --</option>
+                    </select>
+
+                    <button class="action-btn" onclick="searchStationTimeFromDropdown()">立即查詢</button>
+                </div>
+
+                <!-- 模式 B：地圖互動選站 -->
+                <div id="sectionMap" style="display: none;">
+                    <div class="map-line-selector" id="mapLineSelector">
+                        <div class="line-chip active" onclick="selectMapLine('TWL', this)">荃灣綫</div>
+                        <div class="line-chip" onclick="selectMapLine('ISL', this)">港島綫</div>
+                        <div class="line-chip" onclick="selectMapLine('KTL', this)">觀塘綫</div>
+                        <div class="line-chip" onclick="selectMapLine('TML', this)">屯馬綫</div>
+                        <div class="line-chip" onclick="selectMapLine('EAL', this)">東鐵綫</div>
+                    </div>
+                    <p style="font-size: 12px; opacity: 0.7; margin-bottom: 8px;">👇 直接點擊下方車站即可查詢：</p>
+                    <div class="map-station-grid" id="mapStationGrid">
+                        <!-- 動態載入車站按鈕 -->
+                    </div>
+                </div>
             </div>
 
             <!-- 搜尋結果展示區 -->
             <div id="searchResultContainer"></div>
         </div>
 
-        <!-- 頁面 3：港鐵路綫圖與轉車 -->
+        <!-- 頁面 3：港鐵路綫與轉車 -->
         <div id="page-transfer" class="page-content">
             <div class="card">
                 <h3>🗺️ 港鐵路綫快速指南</h3>
                 <p style="font-size: 13px; opacity: 0.8; margin-bottom: 15px;">主要轉車站及核心轉線資訊：</p>
                 
-                <div class="map-line-box">
+                <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
                     <strong>🔴 紅色：荃灣綫 (TWL)</strong><br>
                     <span style="font-size: 13px; opacity: 0.8;">中環 ⟷ 金鐘 ⟷ 旺角 ⟷ 太子 ⟷ 荃灣</span>
                 </div>
-                <div class="map-line-box">
+                <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
                     <strong>🔵 藍色：港島綫 (ISL)</strong><br>
                     <span style="font-size: 13px; opacity: 0.8;">堅尼地城 ⟷ 金鐘 ⟷ 中環 ⟷ 北角 ⟷ 柴灣</span>
                 </div>
-                <div class="map-line-box">
+                <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
                     <strong>🟢 綠色：觀塘綫 (KTL)</strong><br>
                     <span style="font-size: 13px; opacity: 0.8;">黃埔 ⟷ 油麻地 ⟷ 九龍塘 ⟷ 鑽石山 ⟷ 調景嶺</span>
                 </div>
-                <div class="map-line-box">
+                <div class="card" style="background-color: var(--row-bg); margin-bottom: 10px;">
                     <strong>🟤 啡色：屯馬綫 (TML)</strong><br>
                     <span style="font-size: 13px; opacity: 0.8;">烏溪沙 ⟷ 大圍 ⟷ 鑽石山 ⟷ 何文田 ⟷ 紅磡 ⟷ 屯門</span>
                 </div>
-                <div class="map-line-box">
+                <div class="card" style="background-color: var(--row-bg); margin-bottom: 0;">
                     <strong>🩵 青色：東鐵綫 (EAL)</strong><br>
                     <span style="font-size: 13px; opacity: 0.8;">金鐘 ⟷ 會展 ⟷ 紅磡 ⟷ 九龍塘 ⟷ 大圍 ⟷ 上水 ⟷ 羅湖/落馬洲</span>
                 </div>
@@ -476,6 +563,7 @@
         };
 
         let pinnedList = [];
+        let currentMapLine = "TWL"; // 預設地圖選站顯示荃灣綫
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
@@ -494,6 +582,8 @@
 
             if (pageId === 'pinned') {
                 fetchMTRData();
+            } else if (pageId === 'search') {
+                renderMapStations(currentMapLine);
             }
         }
 
@@ -520,6 +610,48 @@
             }
         }
 
+        // 模式切換：下拉清單 vs 地圖互動
+        function switchSearchMode(mode) {
+            const tabDropdown = document.getElementById('tabDropdown');
+            const tabMap = document.getElementById('tabMap');
+            const sectionDropdown = document.getElementById('sectionDropdown');
+            const sectionMap = document.getElementById('sectionMap');
+
+            if (mode === 'dropdown') {
+                tabDropdown.classList.add('active');
+                tabMap.classList.remove('active');
+                sectionDropdown.style.display = 'block';
+                sectionMap.style.display = 'none';
+            } else {
+                tabMap.classList.add('active');
+                tabDropdown.classList.remove('active');
+                sectionDropdown.style.display = 'none';
+                sectionMap.style.display = 'block';
+                renderMapStations(currentMapLine);
+            }
+        }
+
+        function selectMapLine(lineKey, element) {
+            currentMapLine = lineKey;
+            document.querySelectorAll('.line-chip').forEach(chip => chip.classList.remove('active'));
+            element.classList.add('active');
+            renderMapStations(lineKey);
+        }
+
+        function renderMapStations(lineKey) {
+            const grid = document.getElementById('mapStationGrid');
+            grid.innerHTML = "";
+            if (mtrDatabase[lineKey]) {
+                mtrDatabase[lineKey].forEach(station => {
+                    let btn = document.createElement('button');
+                    btn.className = 'map-station-btn';
+                    btn.innerHTML = `📍 ${station.name}`;
+                    btn.onclick = () => searchStationTime(lineKey, station.code, station.name);
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
         function updateStationOptions() {
             const lineSelect = document.getElementById('lineSelect').value;
             const stationSelect = document.getElementById('stationSelect');
@@ -533,6 +665,20 @@
                     stationSelect.appendChild(opt);
                 });
             }
+        }
+
+        function searchStationTimeFromDropdown() {
+            const line = document.getElementById('lineSelect').value;
+            const stationCode = document.getElementById('stationSelect').value;
+
+            if (!line || !stationCode) {
+                alert("⚠️ 請先選擇鐵路綫及車站！");
+                return;
+            }
+
+            const stationDropdown = document.getElementById('stationSelect');
+            const stationFullName = stationDropdown.options[stationDropdown.selectedIndex].text;
+            searchStationTime(line, stationCode, stationFullName);
         }
 
         function translateDestination(destCode) {
@@ -629,18 +775,8 @@
             }
         }
 
-        async function searchStationTime() {
-            const line = document.getElementById('lineSelect').value;
-            const stationCode = document.getElementById('stationSelect').value;
+        async function searchStationTime(line, stationCode, stationFullName) {
             const resultContainer = document.getElementById('searchResultContainer');
-
-            if (!line || !stationCode) {
-                alert("⚠️ 請先選擇鐵路綫及車站！");
-                return;
-            }
-
-            const stationDropdown = document.getElementById('stationSelect');
-            const stationFullName = stationDropdown.options[stationDropdown.selectedIndex].text;
 
             resultContainer.innerHTML = `<div class="card"><p style="text-align: center;">⏳ 正在查詢 ${stationFullName} 實時資料...</p></div>`;
 
@@ -663,7 +799,6 @@
 
                             htmlContent += `<div class="direction-title">往 ${destName} 方向</div>`;
 
-                            // 檢視頭 4 程車，改用精美卡片行排列（不顯示月台）
                             platform.slice(0, 4).forEach((train) => {
                                 const arrivalInfo = formatArrivalTime(train.time);
                                 htmlContent += `
