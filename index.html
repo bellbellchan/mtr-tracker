@@ -634,7 +634,6 @@
                 addPinBtn: "⭐ 將此站加入釘選 (Pin)",
                 firstTrain: "頭班車",
                 lastTrain: "尾班車",
-                lastTrainDeparted: "尾班車已開出",
                 firstTrainNotYet: "頭班車未開出"
             },
             en: {
@@ -690,7 +689,6 @@
                 addPinBtn: "⭐ Pin This Station",
                 firstTrain: "First Train",
                 lastTrain: "Last Train",
-                lastTrainDeparted: "Last train has departed",
                 firstTrainNotYet: "First train has not departed"
             }
         };
@@ -876,7 +874,7 @@
             }
         }
 
-        // 檢查時間是否已過（用於判斷頭班車/尾班車是否已開出）
+        // 檢查時間是否已過（用於判斷頭班車是否已開出）
         function hasTimePassed(timeStr) {
             if (!timeStr) return false;
             const now = new Date();
@@ -884,17 +882,8 @@
             const target = new Date();
             target.setHours(h, m, 0, 0);
 
-            // 處理跨日情況：如果尾班車時間是凌晨（如 00:39），而現在是深夜（如 23:30），target 比 now 遲，diff 會是負數（即未開出）
-            // 如果現在是凌晨 00:45，target 是 00:39，diff 是正數（即已開出）
-            // 若遇特殊情況跨日（例如排程），簡單用以下邏輯判斷：
-            let diff = now - target;
-            if (diff < -12 * 3600 * 1000) {
-                // 例如現在 23:30，target 00:39 其實係聽日凌晨，但用左今日去計就會變咗負得好勁，咁即係未開
-                return false;
-            } else if (diff > 12 * 3600 * 1000) {
-                return true;
-            }
-            return diff > 0;
+            const diff = now - target;
+            return diff > 0 && diff < 12 * 3600 * 1000;
         }
 
         async function fetchMTRData() {
@@ -945,10 +934,6 @@
                                 }
 
                                 let lastDisplay = flTime.last;
-                                const isLastPassed = hasTimePassed(flTime.last);
-                                if (isLastPassed) {
-                                    lastDisplay = `${flTime.last} (${translations[currentLang].lastTrainDeparted})`;
-                                }
 
                                 htmlContent += `
                                     <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
@@ -1023,9 +1008,6 @@
                             }
 
                             let lastDisplay = flTime.last;
-                            if (hasTimePassed(flTime.last)) {
-                                lastDisplay = `${flTime.last} (${translations[currentLang].lastTrainDeparted})`;
-                            }
 
                             htmlContent += `
                                 <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
@@ -1132,9 +1114,6 @@
                             }
 
                             let lastDisplay = flTime.last;
-                            if (hasTimePassed(flTime.last)) {
-                                lastDisplay = `${flTime.last} (${translations[currentLang].lastTrainDeparted})`;
-                            }
 
                             htmlContent += `
                                 <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
