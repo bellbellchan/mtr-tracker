@@ -186,6 +186,45 @@
             box-sizing: border-box;
         }
 
+        /* Autocomplete 建議列表樣式 */
+        .autocomplete-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .suggestions-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: -5px;
+            margin-bottom: 10px;
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
         /* 遮罩背景 */
         .overlay {
             position: fixed;
@@ -350,12 +389,15 @@
                 <h3 id="searchCardTitle">🔍 搜尋全港車站候車時間</h3>
                 
                 <label for="stationInputText" id="labelDirectInput">直接輸入車站名稱：</label>
-                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                    <input type="text" id="stationInputText" placeholder="例如: 旺角 / 金鐘..." style="margin-bottom:0; flex:1;">
-                    <button class="action-btn" style="width: auto; margin-top: 0; padding: 0 15px;" onclick="searchByText()" id="btnTextSearch">查詢</button>
+                <div class="autocomplete-wrapper">
+                    <div style="display: flex; gap: 8px; margin-bottom: 0;">
+                        <input type="text" id="stationInputText" placeholder="例如: 旺角 / mong kok..." style="margin-bottom:0; flex:1;" oninput="handleInputSearch(this.value)">
+                        <button class="action-btn" style="width: auto; margin-top: 0; padding: 0 15px;" onclick="searchByText()" id="btnTextSearch">查詢</button>
+                    </div>
+                    <div id="suggestionsList" class="suggestions-list"></div>
                 </div>
 
-                <div style="text-align: center; margin: 10px 0; font-size: 12px; opacity: 0.5;" id="orDivider">- 或使用選單搜尋 -</div>
+                <div style="text-align: center; margin: 15px 0 10px 0; font-size: 12px; opacity: 0.5;" id="orDivider">- 或使用選單搜尋 -</div>
 
                 <label for="lineSelect" id="labelSelectLine">選擇鐵路綫：</label>
                 <select id="lineSelect" onchange="updateStationOptions()">
@@ -570,7 +612,7 @@
             pages.forEach(page => page.classList.remove('active'));
             document.getElementById('page-' + pageId).classList.add('active');
             
-            document.getElementById('headerTitleinnerText') || (document.getElementById('headerTitle').innerText = translations[currentLang][titleKey]);
+            document.getElementById('headerTitle').innerText = translations[currentLang][titleKey];
             
             const items = document.querySelectorAll('.menu-item');
             items.forEach(item => item.classList.remove('active'));
@@ -816,35 +858,51 @@
             }
         }
 
-        async function searchByText() {
-            const inputVal = document.getElementById('stationInputText').value.trim();
-            const resultContainer = document.getElementById('searchResultContainer');
+        // Autocomplete 輸入聯想功能
+        function handleInputSearch(query) {
+            const listContainer = document.getElementById('suggestionsList');
+            const trimmed = query.trim().toLowerCase();
 
-            if (!inputVal) {
-                alert(translations[currentLang].alertInputStation);
+            if (!trimmed) {
+                listContainer.style.display = 'none';
+                listContainer.innerHTML = '';
                 return;
             }
 
-            // 在資料庫中尋找相符的車站
-            let foundLine = null;
-            let foundStationCode = null;
-            let foundStationFullName = null;
-
+            let matches = [];
             for (const [lineCode, stations] of Object.entries(mtrDatabase)) {
-                const matched = stations.find(s => s.name.includes(inputVal));
-                if (matched) {
-                    foundLine = lineCode;
-                    foundStationCode = matched.code;
-                    foundStationFullName = matched.name;
-                    break;
-                }
+                stations.forEach(station => {
+                    if (station.name.toLowerCase().includes(trimmed)) {
+                        // 避免重複加入同一個車站（如果跨綫重複）
+                        if (!matches.some(m => m.code === station.code)) {
+                            matches.push({ line: lineCode, code: station.code, name: station.name });
+                        }
+                    }
+                });
             }
 
-            if (!foundLine) {
-                alert(translations[currentLang].stationNotFound);
-                return;
+            if (matches.length > 0) {
+                let html = '';
+                matches.forEach(m => {
+                    html += `<div class="suggestion-item" onclick="selectSuggestion('${m.line}', '${m.code}', '${m.name}')">${m.name}</div>`;
+                });
+                listContainer.innerHTML = html;
+                listContainer.style.display = 'block';
+            } else {
+                listContainer.style.display = 'none';
+                listContainer.innerHTML = '';
             }
+        }
 
+        function selectSuggestion(line, code, name) {
+            document.getElementById('stationInputText').value = name;
+            document.getElementById('suggestionsList').style.display = 'none';
+            // 自動幫手執行搜尋
+            searchByTextSpecific(line, code, name);
+        }
+
+        async function searchByTextSpecific(foundLine, foundStationCode, foundStationFullName) {
+            const resultContainer = document.getElementById('searchResultContainer');
             resultContainer.innerHTML = `<div class="card"><p style="text-align: center;">${translations[currentLang].fetchingText}</p></div>`;
 
             try {
@@ -892,6 +950,45 @@
                 resultContainer.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">${translations[currentLang].queryFailed}</p></div>`;
             }
         }
+
+        async function searchByText() {
+            const inputVal = document.getElementById('stationInputText').value.trim();
+            document.getElementById('suggestionsList').style.display = 'none';
+
+            if (!inputVal) {
+                alert(translations[currentLang].alertInputStation);
+                return;
+            }
+
+            let foundLine = null;
+            let foundStationCode = null;
+            let foundStationFullName = null;
+
+            for (const [lineCode, stations] of Object.entries(mtrDatabase)) {
+                const matched = stations.find(s => s.name.toLowerCase().includes(inputVal.toLowerCase()));
+                if (matched) {
+                    foundLine = lineCode;
+                    foundStationCode = matched.code;
+                    foundStationFullName = matched.name;
+                    break;
+                }
+            }
+
+            if (!foundLine) {
+                alert(translations[currentLang].stationNotFound);
+                return;
+            }
+
+            searchByTextSpecific(foundLine, foundStationCode, foundStationFullName);
+        }
+
+        // 點擊頁面其他地方關閉建議選單
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.autocomplete-wrapper')) {
+                const list = document.getElementById('suggestionsList');
+                if (list) list.style.display = 'none';
+            }
+        });
 
         window.onload = function() {
             const savedTheme = localStorage.getItem('mtr_theme');
