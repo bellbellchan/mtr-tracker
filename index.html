@@ -5,185 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MTR 智慧出行系統</title>
     <style>
-        /* 主題顏色定義 */
         :root[data-theme="dark"] {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #e0e0e0;
-            --primary-color: #00b0ff;
-            --border-color: #333;
-            --nav-bg: #1f1f1f;
+            --bg-color: #121212; --card-bg: #1e1e1e; --text-color: #e0e0e0; --primary-color: #00b0ff; --border-color: #333; --nav-bg: #1f1f1f; --danger: #ff5252; --accent: #ffd700;
         }
         :root[data-theme="light"] {
-            --bg-color: #f4f6f8;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --primary-color: #0056b3;
-            --border-color: #ddd;
-            --nav-bg: #ffffff;
+            --bg-color: #f4f6f8; --card-bg: #ffffff; --text-color: #333333; --primary-color: #0056b3; --border-color: #ddd; --nav-bg: #ffffff; --danger: #d32f2f; --accent: #f57c00;
         }
         :root[data-theme="navy"] {
-            --bg-color: #0a192f;
-            --card-bg: #172a45;
-            --text-color: #ccd6f6;
-            --primary-color: #64ffda;
-            --border-color: #233554;
-            --nav-bg: #112240;
+            --bg-color: #0a192f; --card-bg: #172a45; --text-color: #ccd6f6; --primary-color: #64ffda; --border-color: #233554; --nav-bg: #112240; --danger: #ff6b6b; --accent: #ffd166;
         }
         :root[data-theme="pink"] {
-            --bg-color: #fff0f5;
-            --card-bg: #ffffff;
-            --text-color: #d81b60;
-            --primary-color: #e91e63;
-            --border-color: #f8bbd0;
-            --nav-bg: #ffffff;
+            --bg-color: #fff0f5; --card-bg: #ffffff; --text-color: #d81b60; --primary-color: #e91e63; --border-color: #f8bbd0; --nav-bg: #ffffff; --danger: #c2185b; --accent: #ff8f00;
         }
         :root[data-theme="nature"] {
-            --bg-color: #f1f8f5;
-            --card-bg: #ffffff;
-            --text-color: #2e7d32;
-            --primary-color: #43a047;
-            --border-color: #c8e6c9;
-            --nav-bg: #ffffff;
+            --bg-color: #f1f8f5; --card-bg: #ffffff; --text-color: #2e7d32; --primary-color: #43a047; --border-color: #c8e6c9; --nav-bg: #ffffff; --danger: #c62828; --accent: #fbc02d;
         }
 
-        /* 基本樣式 */
         body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background 0.3s, color 0.3s;
+            margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color); color: var(--text-color); transition: background 0.3s, color 0.3s;
         }
-
-        /* 頂部導航欄 */
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 20px;
-            background-color: var(--nav-bg);
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;
+            background-color: var(--nav-bg); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 1000;
         }
+        .logo { font-size: 1.1rem; font-weight: bold; color: var(--accent); display: flex; align-items: center; gap: 5px; }
+        .nav-controls { display: flex; gap: 10px; align-items: center; }
+        select, button, input {
+            background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color);
+            padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+        }
+        button:hover { opacity: 0.85; }
 
-        .logo {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .nav-controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        /* 下拉選單與按鈕 */
-        select, button {
-            background: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        /* 主選單彈窗 ("...") */
-        .menu-container {
-            position: relative;
-        }
+        .menu-container { position: relative; }
         .menu-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 40px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            width: 180px;
-            z-index: 1100;
+            display: none; position: absolute; right: 0; top: 40px; background: var(--card-bg);
+            border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); width: 160px; z-index: 1100;
         }
-        .menu-dropdown button {
-            width: 100%;
-            text-align: left;
-            border: none;
-            background: none;
-            padding: 10px 15px;
-        }
-        .menu-dropdown button:hover {
-            background-color: var(--border-color);
-        }
+        .menu-dropdown button { width: 100%; text-align: left; border: none; background: none; padding: 10px 15px; }
+        .menu-dropdown button:hover { background-color: var(--border-color); }
 
-        /* 內容區域 */
-        main {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 15px;
-        }
-
-        .page {
-            display: none;
-        }
-        .page.active {
-            display: block;
-        }
-
-        /* 卡片設計 */
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        h2 {
-            font-size: 1.3rem;
-            margin-top: 0;
-            color: var(--primary-color);
-        }
-
-        /* 底部/頂部標籤列切換功能 */
         .tab-bar {
-            display: flex;
-            justify-content: space-around;
-            background: var(--nav-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 10px 0;
+            display: flex; justify-content: space-around; background: var(--nav-bg); border-bottom: 1px solid var(--border-color); padding: 8px 0; overflow-x: auto;
         }
-        .tab-btn {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            padding: 5px 10px;
+        .tab-btn { background: none; border: none; color: var(--text-color); font-size: 0.85rem; font-weight: 500; cursor: pointer; padding: 6px 10px; white-space: nowrap; }
+        .tab-btn.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
+
+        main { max-width: 600px; margin: 15px auto; padding: 0 10px 40px 10px; }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px;
+            border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative;
         }
-        .tab-btn.active {
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
+        h2 { font-size: 1.2rem; margin-top: 0; color: var(--primary-color); }
+        
+        .delete-btn {
+            position: absolute; right: 15px; top: 15px; background: none; border: none;
+            color: var(--danger); font-size: 1.3rem; font-weight: bold; cursor: pointer; padding: 0 5px;
         }
+        .train-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.03); padding: 8px 12px; border-radius: 8px; margin-top: 8px;
+        }
+        .time-badge { background: var(--primary-color); color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; }
+        
+        /* 互動地圖Modal */
+        #mapModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .map-content { background: var(--card-bg); padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; border: 1px solid var(--border-color); }
+        .map-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 15px 0; }
+        .map-station-btn { padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <!-- 頂部導航列 -->
     <header>
-        <div class="logo">🚇 MTR 實時資訊</div>
+        <div class="logo">
+            <span>⭐</span> <span id="ui-title-pinned">我的釘選站 (Pinned)</span>
+        </div>
         <div class="nav-controls">
-            <!-- 語言切換 -->
+            <span style="font-size: 0.8rem; background: rgba(0,176,255,0.2); padding: 4px 8px; border-radius: 20px; color: var(--primary-color);">⏱️ 15s</span>
             <select id="langSelect" onchange="changeLanguage()">
                 <option value="zh">繁體中文</option>
                 <option value="en">English</option>
             </select>
-
-            <!-- “…” 選單按鈕 -->
             <div class="menu-container">
                 <button onclick="toggleMenu()">…</button>
                 <div id="menuDropdown" class="menu-dropdown">
@@ -197,88 +106,365 @@
         </div>
     </header>
 
-    <!-- 功能切換標籤列 -->
     <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchPage(0)">1. 已儲存</button>
-        <button class="tab-btn" onclick="switchPage(1)">2. 搜尋時間</button>
-        <button class="tab-btn" onclick="switchPage(2)">3. 轉車路線</button>
-        <button class="tab-btn" onclick="switchPage(3)">4. 升降機指南</button>
+        <button class="tab-btn active" onclick="switchPage(0)" id="tab-0">1. 已儲存</button>
+        <button class="tab-btn" onclick="switchPage(1)" id="tab-1">2. 搜尋時間</button>
+        <button class="tab-btn" onclick="switchPage(2)" id="tab-2">3. 轉車路線</button>
+        <button class="tab-btn" onclick="switchPage(3)" id="tab-3">4. 升降機指南</button>
     </div>
 
     <main>
-        <!-- 功能 1：已儲存嘅候車時間 (主頁) -->
+        <!-- 頁面 1：已儲存 / 主頁 -->
         <section id="page-0" class="page active">
-            <h2 data-i18n="saved_title">已儲存嘅候車時間</h2>
-            <div class="card">
-                <h3>金鐘站 (Admiralty)</h3>
-                <p><strong>往 堅尼地城 方向</strong></p>
-                <p>⏱️ 2 分鐘後到達 (頭班車已開出 / 尾班車 01:10)</p>
-                <p>⏱️ 6 分鐘後到達</p>
-                <hr style="border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
-                <p><strong>往 柴灣 方向</strong></p>
-                <p>⏱️ 1 分鐘後到達 (尾班車 01:05)</p>
-                <p>⏱️ 5 分鐘後到達</p>
-                <button onclick="alert('已取消儲存')">取消儲存</button>
-            </div>
+            <div id="pinnedListContainer"></div>
+            <p style="text-align: center; font-size: 0.85rem; opacity: 0.7; margin-top: 20px;" id="ui-tip">💡 提示：畫面每 15 秒會在背景自動更新一次。</p>
         </section>
 
-        <!-- 功能 2：搜尋候車時間 -->
+        <!-- 頁面 2：搜尋候車時間 (三個獨立格仔) -->
         <section id="page-1" class="page">
-            <h2 data-i18n="search_time_title">搜尋候車時間</h2>
+            <h2 id="ui-s2-head">搜尋候車時間</h2>
+            
+            <!-- 格仔 1：下拉式選單 -->
             <div class="card">
-                <p><strong>三種搜尋方式：</strong></p>
-                <select>
-                    <option>-- 1. 下拉式選單選擇車站 --</option>
-                    <option>金鐘 Admiralty</option>
-                    <option>中環 Central</option>
-                    <option>旺角 Mong Kok</option>
+                <h3 style="font-size: 1rem; margin-top:0;" id="ui-box1-title">方式一：下拉式選單選擇車站</h3>
+                <select id="searchSelect" style="width: 100%; margin-top: 8px;" onchange="executeSearch(this.value)">
+                    <option value="">-- 請選擇車站 --</option>
+                    <option value="旺角">旺角 Mong Kok (荃灣線)</option>
+                    <option value="金鐘">金鐘 Admiralty (港島線)</option>
+                    <option value="中環">中環 Central (荃灣線/港島線)</option>
+                    <option value="銅鑼灣">銅鑼灣 Causeway Bay (港島線)</option>
                 </select>
-                <br><br>
-                <input type="text" placeholder="2. 直接輸入車站名稱..." style="width: 80%; padding: 6px;">
-                <br><br>
-                <button onclick="alert('模擬開啟港鐵互動地圖點選車站')">🗺️ 3. 港鐵地圖點選車站</button>
             </div>
+
+            <!-- 格仔 2：直接輸入車站名 -->
             <div class="card">
-                <h3>搜尋結果：旺角站 (Mong Kok)</h3>
-                <p>1. 往 中環：3 分鐘後</p>
-                <p>2. 往 中環：7 分鐘後</p>
-                <p>3. 往 中環：11 分鐘後</p>
-                <p>4. 往 中環：15 分鐘後</p>
-                <p>5. 往 中環：19 分鐘後</p>
-                <button onclick="alert('已 Pin 到主頁！')">📌 Pin 呢個站去主頁</button>
+                <h3 style="font-size: 1rem; margin-top:0;" id="ui-box2-title">方式二：直接輸入車站名稱</h3>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <input type="text" id="searchInputText" placeholder="輸入車站名稱..." style="flex: 1;">
+                    <button onclick="executeSearch(document.getElementById('searchInputText').value)" id="ui-search-btn">搜尋</button>
+                </div>
             </div>
+
+            <!-- 格仔 3：港鐵互動地圖點選 -->
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-top:0;" id="ui-box3-title">方式三：港鐵互動地圖點選</h3>
+                <button onclick="openMapModal()" style="width: 100%; margin-top: 8px; background: var(--primary-color); color: white; font-weight: bold;" id="ui-map-btn">🗺️ 打開港鐵地圖選擇車站</button>
+            </div>
+
+            <!-- 搜尋結果顯示區 -->
+            <div id="searchResultArea" style="display:none;"></div>
         </section>
 
-        <!-- 功能 3：轉車路線規劃 -->
+        <!-- 頁面 3：轉車路線規劃 -->
         <section id="page-2" class="page">
-            <h2 data-i18n="route_title">轉車路線規劃</h2>
+            <h2 id="ui-s3-head">轉車路線規劃</h2>
             <div class="card">
-                <p>起點站：<input type="text" value="銅鑼灣" style="width: 60%"></p>
-                <p>終點站：<input type="text" value="尖沙咀" style="width: 60%"></p>
-                <button onclick="alert('正在計算最佳路線...')">搜尋路線</button>
+                <p><span id="ui-start">起點站</span>：<input type="text" id="routeStart" value="銅鑼灣" style="width: 60%"></p>
+                <p><span id="ui-end">終點站</span>：<input type="text" id="routeEnd" value="尖沙咀" style="width: 60%"></p>
+                <button onclick="searchRoutes()" style="width: 100%; background: var(--primary-color); color: white; font-weight: bold;" id="ui-calc-btn">搜尋最佳路線</button>
             </div>
-            <div class="card">
-                <h3>路線方案 1 (推薦)</h3>
-                <p>⏱️ 總耗時：15 分鐘 | 🔄 轉車次數：1 次 (金鐘)</p>
-                <button onclick="alert('進入詳細導航頁面：實時倒數與車卡建議')">查看詳細導航</button>
-            </div>
+            <div id="routeResultsContainer"></div>
+            <div id="detailedNavContainer" style="display:none;"></div>
         </section>
 
-        <!-- 功能 4：車站地面升降機指南 -->
+        <!-- 頁面 4：車站地面升降機指南 -->
         <section id="page-3" class="page">
-            <h2 data-i18n="lift_title">車站地面升降機指南</h2>
+            <h2 id="ui-s4-head">車站地面升降機指南</h2>
+            
             <div class="card">
-                <input type="text" placeholder="輸入車站名稱搜尋升降機..." style="width: 90%; padding: 6px;">
+                <h3 style="font-size: 1rem; margin-top:0;">下拉選擇車站</h3>
+                <select id="liftSelect" style="width: 100%; margin-top: 8px;" onchange="showLiftInfo(this.value)">
+                    <option value="">-- 請選擇車站查看升降機 --</option>
+                    <option value="旺角">旺角 Mong Kok</option>
+                    <option value="金鐘">金鐘 Admiralty</option>
+                    <option value="中環">中環 Central</option>
+                </select>
             </div>
+
             <div class="card">
-                <h3>旺角站 (Mong Kok) 直達地面升降機</h3>
-                <p><strong>E1 出口</strong> | 奶路臣街 | 直達層數：大堂 ⇄ 地面</p>
-                <p><strong>B2 出口</strong> | 西洋菜南街 | 直達層數：月台 ⇄ 大堂 ⇄ 地面</p>
+                <h3 style="font-size: 1rem; margin-top:0;">直接輸入車站</h3>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <input type="text" id="liftInputText" placeholder="例如: 旺角..." style="flex: 1;">
+                    <button onclick="showLiftInfo(document.getElementById('liftInputText').value)">查詢</button>
+                </div>
             </div>
+
+            <div class="card">
+                <h3 style="font-size: 1rem; margin-top:0;">地圖點選查詢</h3>
+                <button onclick="openLiftMapModal()" style="width: 100%; margin-top: 8px; background: var(--primary-color); color: white; font-weight: bold;">🗺️ 從地圖選擇車站</button>
+            </div>
+
+            <div id="liftResultArea"></div>
         </section>
     </main>
 
+    <!-- 互動地圖彈窗 (搜尋候車時間用) -->
+    <div id="mapModal" onclick="closeMapModal(event)">
+        <div class="map-content" onclick="event.stopPropagation()">
+            <h3 id="ui-map-title">選擇港鐵車站</h3>
+            <div class="map-grid">
+                <button class="map-station-btn" onclick="selectMapStation('旺角')">旺角</button>
+                <button class="map-station-btn" onclick="selectMapStation('金鐘')">金鐘</button>
+                <button class="map-station-btn" onclick="selectMapStation('中環')">中環</button>
+                <button class="map-station-btn" onclick="selectMapStation('銅鑼灣')">銅鑼灣</button>
+            </div>
+            <button onclick="closeMapModal()" style="width: 100%; margin-top: 10px;">取消 / 關閉</button>
+        </div>
+    </div>
+
+    <!-- 升降機地圖彈窗 -->
+    <div id="liftMapModal" onclick="closeLiftMapModal(event)" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;">
+        <div class="map-content" onclick="event.stopPropagation()">
+            <h3>選擇車站查詢升降機</h3>
+            <div class="map-grid">
+                <button class="map-station-btn" onclick="selectLiftMapStation('旺角')">旺角</button>
+                <button class="map-station-btn" onclick="selectLiftMapStation('金鐘')">金鐘</button>
+                <button class="map-station-btn" onclick="selectLiftMapStation('中環')">中環</button>
+            </div>
+            <button onclick="closeLiftMapModal()" style="width: 100%; margin-top: 10px;">關閉</button>
+        </div>
+    </div>
+
     <script>
+        // 語言字典
+        const langData = {
+            zh: {
+                pinned: "我的釘選站 (Pinned)",
+                tab0: "1. 已儲存", tab1: "2. 搜尋時間", tab2: "3. 轉車路線", tab3: "4. 升降機指南",
+                tip: "💡 提示：畫面每 15 秒會在背景自動更新一次。",
+                s2Head: "搜尋候車時間", box1: "方式一：下拉式選單選擇車站", box2: "方式二：直接輸入車站名稱", box3: "方式三：港鐵互動地圖點選", searchBtn: "搜尋", mapBtn: "🗺️ 打開港鐵地圖選擇車站",
+                s3Head: "轉車路線規劃", start: "起點站", end: "終點站", calcBtn: "搜尋最佳路線",
+                s4Head: "車站地面升降機指南",
+                mapTitle: "選擇港鐵車站", pinIt: "📌 Pin 呢個站去主頁",
+                to: "往", minLater: "分鐘後", firstTrain: "頭班車", lastTrain: "尾班車",
+                delSuccess: "已從主頁移除", pinSuccess: "成功 Pin 到主頁！"
+            },
+            en: {
+                pinned: "Pinned Stations",
+                tab0: "1. Saved", tab1: "2. Search Time", tab2: "3. Route Planner", tab3: "4. Lift Guide",
+                tip: "💡 Tip: Data auto-refreshes every 15 seconds.",
+                s2Head: "Search Train Arrival", box1: "Method 1: Dropdown Selection", box2: "Method 2: Direct Input", box3: "Method 3: Interactive MTR Map", searchBtn: "Search", mapBtn: "🗺️ Open MTR Interactive Map",
+                s3Head: "Transfer Route Planner", start: "Origin", end: "Destination", calcBtn: "Search Routes",
+                s4Head: "Ground Floor Lift Guide",
+                mapTitle: "Select MTR Station", pinIt: "📌 Pin to Home",
+                to: "To", minLater: "m later", firstTrain: "First", lastTrain: "Last",
+                delSuccess: "Removed from saved", pinSuccess: "Successfully Pinned!"
+            }
+        };
+
+        let currentLang = 'zh';
+
+        function changeLanguage() {
+            currentLang = document.getElementById('langSelect').value;
+            const t = langData[currentLang];
+
+            document.getElementById('ui-title-pinned').innerText = t.pinned;
+            document.getElementById('tab-0').innerText = t.tab0;
+            document.getElementById('tab-1').innerText = t.tab1;
+            document.getElementById('tab-2').innerText = t.tab2;
+            document.getElementById('tab-3').innerText = t.tab3;
+            document.getElementById('ui-tip').innerText = t.tip;
+            
+            document.getElementById('ui-s2-head').innerText = t.s2Head;
+            document.getElementById('ui-box1-title').innerText = t.box1;
+            document.getElementById('ui-box2-title').innerText = t.box2;
+            document.getElementById('ui-box3-title').innerText = t.box3;
+            document.getElementById('ui-search-btn').innerText = t.searchBtn;
+            document.getElementById('ui-map-btn').innerText = t.mapBtn;
+
+            document.getElementById('ui-s3-head').innerText = t.s3Head;
+            document.getElementById('ui-start').innerText = t.start;
+            document.getElementById('ui-end').innerText = t.end;
+            document.getElementById('ui-calc-btn').innerText = t.calcBtn;
+
+            document.getElementById('ui-s4-head').innerText = t.s4Head;
+            document.getElementById('ui-map-title').innerText = t.mapTitle;
+
+            renderPinnedStations();
+        }
+
+        // 資料庫：已儲存/Pin 咗嘅車站
+        let pinnedStations = [
+            {
+                name: "旺角站 (Mong Kok) - 荃灣線",
+                stationKey: "旺角",
+                line: "荃灣線",
+                directions: [
+                    { dest: "往 荃灣 方向", first: "06:00", last: "01:15", times: ["2 分鐘後", "6 分鐘後"] },
+                    { dest: "往 中環 方向", first: "06:05", last: "01:10", times: ["1 分鐘後", "5 分鐘後"] }
+                ]
+            },
+            {
+                name: "金鐘站 (Admiralty) - 港島線",
+                stationKey: "金鐘",
+                line: "港島線",
+                directions: [
+                    { dest: "往 柴灣 方向", first: "05:55", last: "01:05", times: ["2 分鐘後", "8 分鐘後"] },
+                    { dest: "往 堅尼地城 方向", first: "06:02", last: "01:20", times: ["5 分鐘後", "12 分鐘後"] }
+                ]
+            }
+        ];
+
+        // 渲染主頁已儲存車站
+        function renderPinnedStations() {
+            const container = document.getElementById('pinnedListContainer');
+            container.innerHTML = "";
+
+            if (pinnedStations.length === 0) {
+                container.innerHTML = `<div class="card" style="text-align:center;"><p>${currentLang==='zh'?'暫無儲存車站，請去「搜尋時間」Pin 站！':'No saved stations.'}</p></div>`;
+                return;
+            }
+
+            pinnedStations.forEach((station, index) => {
+                let html = `
+                    <div class="card">
+                        <button class="delete-btn" onclick="removePinned(${index})">✕</button>
+                        <h3 style="margin-top:0; font-size: 1.1rem; color: var(--primary-color);">📌 ${station.name}</h3>
+                `;
+
+                station.directions.forEach(dir => {
+                    html += `
+                        <p style="margin: 8px 0 4px 0; font-weight: bold; font-size: 0.95rem;">${dir.dest}</p>
+                        <div style="font-size: 0.8rem; opacity: 0.75; margin-bottom: 4px;">
+                            ${currentLang==='zh'?'頭班車':'First'}: ${dir.first} | ${currentLang==='zh'?'尾班車':'Last'}: ${dir.last}
+                        </div>
+                    `;
+                    dir.times.forEach(t => {
+                        html += `
+                            <div class="train-row">
+                                <span style="font-size:0.9rem;">20:50</span>
+                                <span class="time-badge">${t}</span>
+                            </div>
+                        `;
+                    });
+                });
+
+                html += `</div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function removePinned(index) {
+            pinnedStations.splice(index, 1);
+            renderPinnedStations();
+            alert(langData[currentLang].delSuccess);
+        }
+
+        // 搜尋功能
+        function executeSearch(stationName) {
+            if(!stationName) return;
+            const cleanName = stationName.trim();
+            const resultArea = document.getElementById('searchResultArea');
+            resultArea.style.display = 'block';
+
+            let t = langData[currentLang];
+            resultArea.innerHTML = `
+                <div class="card">
+                    <h3>${cleanName} 站實時候車時間 (顯示 5 班車)</h3>
+                    <div class="train-row"><span>往 中環方向 (第1班)</span><span class="time-badge">2 分鐘後</span></div>
+                    <div class="train-row"><span>往 中環方向 (第2班)</span><span class="time-badge">6 分鐘後</span></div>
+                    <div class="train-row"><span>往 中環方向 (第3班)</span><span class="time-badge">10 分鐘後</span></div>
+                    <div class="train-row"><span>往 中環方向 (第4班)</span><span class="time-badge">14 分鐘後</span></div>
+                    <div class="train-row"><span>往 中環方向 (第5班)</span><span class="time-badge">18 分鐘後</span></div>
+                    <button onclick="pinStation('${cleanName}')" style="margin-top: 12px; width: 100%; background: var(--accent); color: #000; font-weight: bold;">${t.pinIt}</button>
+                </div>
+            `;
+        }
+
+        function pinStation(name) {
+            pinnedStations.push({
+                name: name + "站",
+                stationKey: name,
+                line: "荃灣線 / 港島線",
+                directions: [
+                    { dest: "往 總站方向", first: "06:00", last: "01:00", times: ["2 分鐘後", "5 分鐘後"] }
+                ]
+            });
+            alert(langData[currentLang].pinSuccess);
+            switchPage(0);
+        }
+
+        // 互動地圖控制 (搜尋)
+        function openMapModal() { document.getElementById('mapModal').style.display = 'flex'; }
+        function closeMapModal(e) { 
+            if(!e || e.target.id === 'mapModal') document.getElementById('mapModal').style.display = 'none'; 
+        }
+        function selectMapStation(name) {
+            closeMapModal();
+            document.getElementById('searchInputText').value = name;
+            executeSearch(name);
+        }
+
+        // 升降機地圖控制
+        function openLiftMapModal() { document.getElementById('liftMapModal').style.display = 'flex'; }
+        function closeLiftMapModal(e) {
+            if(!e || e.target.id === 'liftMapModal') document.getElementById('liftMapModal').style.display = 'none';
+        }
+        function selectLiftMapStation(name) {
+            closeLiftMapModal();
+            showLiftInfo(name);
+        }
+
+        // 轉車路線邏輯
+        function searchRoutes() {
+            const start = document.getElementById('routeStart').value;
+            const end = document.getElementById('routeEnd').value;
+            const container = document.getElementById('routeResultsContainer');
+
+            container.innerHTML = `
+                <div class="card">
+                    <h3>${start} ➔ ${end} 路線方案</h3>
+                    <p><strong>方案 1 (推薦)</strong>: 總耗時 15 分鐘 | 轉車 1 次 (金鐘)</p>
+                    <button onclick="showDetailedNav('方案 1: 銅鑼灣 ➔ 金鐘 ➔ 尖沙咀')" style="background: var(--primary-color); color:white; width:100%;">查看詳細導航</button>
+                </div>
+                <div class="card">
+                    <p><strong>方案 2 (替代)</strong>: 總耗時 18 分鐘 | 轉車 2 次</p>
+                    <button onclick="showDetailedNav('方案 2 繞路導航')" style="background: var(--primary-color); color:white; width:100%;">查看詳細導航</button>
+                </div>
+            `;
+        }
+
+        function showDetailedNav(routeDesc) {
+            const navContainer = document.getElementById('detailedNavContainer');
+            navContainer.style.display = 'block';
+            navContainer.innerHTML = `
+                <div class="card" style="border: 2px solid var(--primary-color);">
+                    <h3>🧭 詳細導航頁面：${routeDesc}</h3>
+                    <p>⏱️ <strong>實時列車倒數</strong>：下一班車 3 分鐘後到達</p>
+                    <hr style="border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
+                    <p>💡 <strong>車卡建議（雙重提示）</strong>：</p>
+                    <p>⚡ <strong>扶手電梯最快車卡</strong>：排前面 ➔ <strong>3 號 / 10 號車卡</strong></p>
+                    <p>♿ <strong>升降機最快車卡</strong>：排後邊 ➔ <strong>5 號車卡</strong></p>
+                    <button onclick="document.getElementById('detailedNavContainer').style.display='none'" style="width:100%; margin-top:10px;">關閉導航</button>
+                </div>
+            `;
+            navContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 升降機指南邏輯
+        function showLiftInfo(stationName) {
+            if(!stationName) return;
+            const clean = stationName.trim();
+            const area = document.getElementById('liftResultArea');
+            area.innerHTML = `
+                <div class="card">
+                    <h3>${clean}站 - 地面升降機指南</h3>
+                    <p><strong>E1 出口</strong> | 奶路臣街 | 直達層數：大堂 ⇄ 地面</p>
+                    <p><strong>B2 出口</strong> | 西洋菜南街 | 直達層數：月台 ⇄ 大堂 ⇄ 地面</p>
+                </div>
+            `;
+        }
+
+        // 頁面切換
+        function switchPage(index) {
+            const pages = document.querySelectorAll('.page');
+            const buttons = document.querySelectorAll('.tab-btn');
+            pages.forEach((p, i) => {
+                p.classList.toggle('active', i === index);
+                buttons[i].classList.toggle('active', i === index);
+            });
+        }
+
         // 主題切換
         function setTheme(themeName) {
             document.documentElement.setAttribute('data-theme', themeName);
@@ -286,43 +472,21 @@
             document.getElementById('menuDropdown').style.display = 'none';
         }
 
-        // 顯示/隱藏右上角選單
         function toggleMenu() {
             const menu = document.getElementById('menuDropdown');
             menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
 
-        // 頁面切換
-        function switchPage(index) {
-            const pages = document.querySelectorAll('.page');
-            const buttons = document.querySelectorAll('.tab-btn');
-            
-            pages.forEach((p, i) => {
-                p.classList.toggle('active', i === index);
-                buttons[i].classList.toggle('active', i === index);
-            });
-        }
-
-        // 語言切換簡單示範
-        function changeLanguage() {
-            const lang = document.getElementById('langSelect').value;
-            if(lang === 'en') {
-                alert('Switched to English interface (Demo)');
-            } else {
-                alert('已切換至繁體中文');
-            }
-        }
-
-        // 每隔 15 秒自動更新資料的機制框架
+        // 15 秒自動刷新背景模擬
         setInterval(() => {
-            console.log("正在向 MTR 系統同步最新資料 (每 15 秒自動刷新)...");
-            // 實作時可在此處呼叫 API 更新畫面的候車時間數據
+            console.log("MTR背景資料自動更新 (15秒)");
         }, 15000);
 
-        // 載入時套用儲存的主題
+        // 載入初始化
         window.onload = function() {
             const savedTheme = localStorage.getItem('mtr_theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
+            renderPinnedStations();
         }
     </script>
 </body>
