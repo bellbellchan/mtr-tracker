@@ -692,6 +692,7 @@
 
         function removePin(id) {
             pinnedList = pinnedList.filter(item => item.id !== id);
+            savePinnedToStorage();
             fetchMTRData();
         }
 
@@ -701,10 +702,26 @@
                 let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "SIL": "南港島綫", "TKL": "將軍澳綫", "TML": "屯馬綫", "EAL": "東鐵綫", "TCL": "東涌綫" };
                 let lineName = lineNameMap[line] || line;
                 pinnedList.push({ id: newId, line: line, station: stationCode, name: `${stationFullName} - ${lineName}` });
+                savePinnedToStorage();
                 alert(translations[currentLang].pinnedSuccess);
                 fetchMTRData();
             } else {
                 alert(translations[currentLang].alreadyPinned);
+            }
+        }
+
+        function savePinnedToStorage() {
+            localStorage.setItem('mtr_pinned_list', JSON.stringify(pinnedList));
+        }
+
+        function loadPinnedFromStorage() {
+            const saved = localStorage.getItem('mtr_pinned_list');
+            if (saved) {
+                try {
+                    pinnedList = JSON.parse(saved);
+                } catch (e) {
+                    pinnedList = [];
+                }
             }
         }
 
@@ -795,25 +812,22 @@
                                 const platform = stationData[dir];
                                 const destName = translateDestination(platform[0].dest);
 
-                                // 顯示最多兩班車
-                                platform.slice(0, 2).forEach((train, index) => {
+                                htmlContent += `<div class="direction-title">往 ${destName} ${translations[currentLang].toDir}</div>`;
+
+                                platform.slice(0, 2).forEach((train) => {
                                     const arrivalInfo = formatArrivalTime(train.time);
-                                    let labelPrefix = index === 0 ? `往 ${destName} ${translations[currentLang].toDir}` : `(後續)`;
                                     htmlContent += `
-                                        <div class="train-row">
-                                            <span><strong>${labelPrefix}</strong> <span style="opacity: 0.8; font-size: 13px; margin-left: 6px; font-weight: bold; color: var(--accent-color);">${arrivalInfo.timeStr}</span></span>
+                                        <div class="train-card-row">
+                                            <span class="train-time-left">${arrivalInfo.timeStr}</span>
                                             <span class="time-badge">${arrivalInfo.text}</span>
                                         </div>
                                     `;
                                 });
 
-                                // 顯示每個方向嘅頭班車同尾班車 (官方 API 結構中通常以 first/last 或類似欄位展示，若欄位不存在則顯示預設或略過，此處以標準欄位兼容)
-                                let firstTime = platform[0].plat ? "06:00" : "06:00"; 
-                                let lastTime = "23:59";
                                 htmlContent += `
-                                    <div style="font-size: 12px; opacity: 0.7; margin-top: 4px; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
-                                        <span>🌅 ${translations[currentLang].firstTrain}: 約 ${firstTime}</span>
-                                        <span>🌙 ${translations[currentLang].lastTrain}: 約 ${lastTime}</span>
+                                    <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
+                                        <span>🌅 ${translations[currentLang].firstTrain}: 正常服務</span>
+                                        <span>🌙 ${translations[currentLang].lastTrain}: 正常服務</span>
                                     </div>
                                 `;
                             }
@@ -866,7 +880,7 @@
 
                             htmlContent += `<div class="direction-title">往 ${destName} ${translations[currentLang].toDir}</div>`;
 
-                            platform.slice(0, 4).forEach((train) => {
+                            platform.slice(0, 2).forEach((train) => {
                                 const arrivalInfo = formatArrivalTime(train.time);
                                 htmlContent += `
                                     <div class="train-card-row">
@@ -876,11 +890,10 @@
                                 `;
                             });
 
-                            // 搜尋頁加入頭班車與尾班車顯示
                             htmlContent += `
                                 <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
-                                    <span>🌅 ${translations[currentLang].firstTrain}: 約 06:00</span>
-                                    <span>🌙 ${translations[currentLang].lastTrain}: 約 23:59</span>
+                                    <span>🌅 ${translations[currentLang].firstTrain}: 正常服務</span>
+                                    <span>🌙 ${translations[currentLang].lastTrain}: 正常服務</span>
                                 </div>
                             `;
                         }
@@ -965,7 +978,7 @@
 
                             htmlContent += `<div class="direction-title">往 ${destName} ${translations[currentLang].toDir}</div>`;
 
-                            platform.slice(0, 4).forEach((train) => {
+                            platform.slice(0, 2).forEach((train) => {
                                 const arrivalInfo = formatArrivalTime(train.time);
                                 htmlContent += `
                                     <div class="train-card-row">
@@ -975,11 +988,10 @@
                                 `;
                             });
 
-                            // 搜尋頁加入頭班車與尾班車顯示
                             htmlContent += `
                                 <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
-                                    <span>🌅 ${translations[currentLang].firstTrain}: 約 06:00</span>
-                                    <span>🌙 ${translations[currentLang].lastTrain}: 約 23:59</span>
+                                    <span>🌅 ${translations[currentLang].firstTrain}: 正常服務</span>
+                                    <span>🌙 ${translations[currentLang].lastTrain}: 正常服務</span>
                                 </div>
                             `;
                         }
@@ -1051,6 +1063,7 @@
                 changeLanguage(savedLang);
             }
 
+            loadPinnedFromStorage();
             fetchMTRData();
             setInterval(fetchMTRData, 15000);
         };
