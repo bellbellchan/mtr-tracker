@@ -884,8 +884,17 @@
             const target = new Date();
             target.setHours(h, m, 0, 0);
 
-            const diff = now - target;
-            return diff > 0 && diff < 12 * 3600 * 1000;
+            // 處理跨日情況：如果尾班車時間是凌晨（如 00:39），而現在是深夜（如 23:30），target 比 now 遲，diff 會是負數（即未開出）
+            // 如果現在是凌晨 00:45，target 是 00:39，diff 是正數（即已開出）
+            // 若遇特殊情況跨日（例如排程），簡單用以下邏輯判斷：
+            let diff = now - target;
+            if (diff < -12 * 3600 * 1000) {
+                // 例如現在 23:30，target 00:39 其實係聽日凌晨，但用左今日去計就會變咗負得好勁，咁即係未開
+                return false;
+            } else if (diff > 12 * 3600 * 1000) {
+                return true;
+            }
+            return diff > 0;
         }
 
         async function fetchMTRData() {
