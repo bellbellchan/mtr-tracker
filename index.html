@@ -476,8 +476,17 @@
                 { code: "LAT", name: "藍田 (Lam Tin)" }, { code: "YAT", name: "油塘 (Yau Tong)" },
                 { code: "TIK", name: "調景嶺 (Tiu Keng Leng)" }
             ],
-            "SIL": [],
-            "TKE": [],
+            "SIL": [
+                { code: "ADM", name: "金鐘 (Admiralty)" }, { code: "OCP", name: "海洋公園 (Ocean Park)" },
+                { code: "WCH", name: "黃竹坑 (Wong Chuk Hang)" }, { code: "LET", name: "利東 (Lei Tung)" },
+                { code: "SOH", name: "海怡半島 (South Horizons)" }
+            ],
+            "TKE": [
+                { code: "NOP", name: "北角 (North Point)" }, { code: "QUB", name: "鰂魚涌 (Quarry Bay)" },
+                { code: "YAT", name: "油塘 (Yau Tong)" }, { code: "TIK", name: "調景嶺 (Tiu Keng Leng)" },
+                { code: "TKO", name: "將軍澳 (Tseung Kwan O)" }, { code: "HAH", name: "坑口 (Hang Hau)" },
+                { code: "POA", name: "寶琳 (Po Lam)" }, { code: "LHP", name: "康城 (LOHAS Park)" }
+            ],
             "TML": [
                 { code: "WKS", name: "烏溪沙 (Wu Kai Sha)" }, { code: "MOS", name: "馬鞍山 (Ma On Shan)" },
                 { code: "HEO", name: "恆安 (Heng On)" }, { code: "TSH", name: "大水坑 (Tai Shui Hang)" },
@@ -504,7 +513,12 @@
                 { code: "SHS", name: "上水 (Sheung Shui)" }, { code: "LOW", name: "羅湖 (Lo Wu)" },
                 { code: "LMC", name: "落馬洲 (Lok Ma Chau)" }
             ],
-            "TCL": []
+            "TCL": [
+                { code: "HKG", name: "香港 (Hong Kong)" }, { code: "KEW", name: "九龍 (Kowloon)" },
+                { code: "OLY", name: "奧運 (Olympic)" }, { code: "NAC", name: "南昌 (Nam Cheong)" },
+                { code: "LAK", name: "荔景 (Lai King)" }, { code: "TSY", name: "青衣 (Tsing Yi)" },
+                { code: "SUN", name: "欣澳 (Sunny Bay)" }, { code: "TUC", name: "東涌 (Tung Chung)" }
+            ]
         };
 
         const translations = {
@@ -681,7 +695,7 @@
         function addPin(line, stationCode, stationFullName) {
             const newId = `${line}-${stationCode}`;
             if (!pinnedList.some(item => item.id === newId)) {
-                let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "TML": "屯馬綫", "EAL": "東鐵綫" };
+                let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "SIL": "南港島綫", "TKE": "將軍澳綫", "TML": "屯馬綫", "EAL": "東鐵綫", "TCL": "東涌綫" };
                 let lineName = lineNameMap[line] || line;
                 pinnedList.push({ id: newId, line: line, station: stationCode, name: `${stationFullName} - ${lineName}` });
                 alert(translations[currentLang].pinnedSuccess);
@@ -710,7 +724,8 @@
             const destMap = {
                 "CEN": "中環", "TSW": "荃灣", "CHW": "柴灣", "KET": "堅尼地城",
                 "NOP": "北角", "QUB": "鰂魚涌", "WHA": "黃埔", "TIK": "調景嶺",
-                "WKS": "烏溪沙", "TUM": "屯門", "LOW": "羅湖", "LMC": "落馬洲"
+                "WKS": "烏溪沙", "TUM": "屯門", "LOW": "羅湖", "LMC": "落馬洲",
+                "SOH": "海怡半島", "POA": "寶琳", "LHP": "康城", "TUC": "東涌", "HKG": "香港"
             };
             return destMap[destCode] || destCode;
         }
