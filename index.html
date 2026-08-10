@@ -391,7 +391,7 @@
                 <label for="stationInputText" id="labelDirectInput">直接輸入車站名稱：</label>
                 <div class="autocomplete-wrapper">
                     <div style="display: flex; gap: 8px; margin-bottom: 0;">
-                        <input type="text" id="stationInputText" placeholder="例如: 旺角 / mong kok..." style="margin-bottom:0; flex:1;" oninput="handleInputSearch(this.value)">
+                        <input type="text" id="stationInputText" placeholder="例如: 將軍澳 / tko..." style="margin-bottom:0; flex:1;" oninput="handleInputSearch(this.value)">
                         <button class="action-btn" style="width: auto; margin-top: 0; padding: 0 15px;" onclick="searchByText()" id="btnTextSearch">查詢</button>
                     </div>
                     <div id="suggestionsList" class="suggestions-list"></div>
@@ -406,7 +406,7 @@
                     <option value="ISL">港島綫 (ISL)</option>
                     <option value="KTL">觀塘綫 (KTL)</option>
                     <option value="SIL">南港島綫 (SIL)</option>
-                    <option value="TKE">將軍澳綫 (TKE)</option>
+                    <option value="TKL">將軍澳綫 (TKL)</option>
                     <option value="EAL">東鐵綫 (EAL)</option>
                     <option value="TML">屯馬綫 (TML)</option>
                     <option value="TCL">東涌綫 (TCL)</option>
@@ -481,7 +481,7 @@
                 { code: "WCH", name: "黃竹坑 (Wong Chuk Hang)" }, { code: "LET", name: "利東 (Lei Tung)" },
                 { code: "SOH", name: "海怡半島 (South Horizons)" }
             ],
-            "TKE": [
+            "TKL": [
                 { code: "NOP", name: "北角 (North Point)" }, { code: "QUB", name: "鰂魚涌 (Quarry Bay)" },
                 { code: "YAT", name: "油塘 (Yau Tong)" }, { code: "TIK", name: "調景嶺 (Tiu Keng Leng)" },
                 { code: "TKO", name: "將軍澳 (Tseung Kwan O)" }, { code: "HAH", name: "坑口 (Hang Hau)" },
@@ -554,7 +554,7 @@
                 networkError: "⚠️ 網絡連接發生錯誤，正嘗試自動重新整理...",
                 alertSelectLineStation: "⚠️ 請先選擇鐵路綫及車站！",
                 alertInputStation: "⚠️ 請輸入車站名稱！",
-                stationNotFound: "⚠️ 找不到該車站，請嘗試輸入更準確的車站名稱（例如：旺角 / 金鐘）。",
+                stationNotFound: "⚠️ 找不到該車站，請嘗試輸入更準確的車站名稱（例如：將軍澳 / 旺角）。",
                 fetchingText: "⏳ 正在查詢實時資料...",
                 pinnedSuccess: "⭐ 成功加入釘選站！",
                 alreadyPinned: "💡 這個車站已經在你的釘選列表裏面了！",
@@ -597,7 +597,7 @@
                 networkError: "⚠️ Network error, attempting to refresh automatically...",
                 alertSelectLineStation: "⚠️ Please select a line and station first!",
                 alertInputStation: "⚠️ Please enter a station name!",
-                stationNotFound: "⚠️ Station not found. Please try entering a more accurate name (e.g., Mong Kok / Admiralty).",
+                stationNotFound: "⚠️ Station not found. Please try entering a more accurate name (e.g., Tseung Kwan O / Mong Kok).",
                 fetchingText: "⏳ Fetching live data...",
                 pinnedSuccess: "⭐ Successfully pinned station!",
                 alreadyPinned: "💡 This station is already in your pinned list!",
@@ -653,7 +653,6 @@
             currentLang = lang;
             localStorage.setItem('mtr_lang', lang);
             
-            // 更新介面文字
             document.getElementById('headerTitle').innerText = translations[currentLang][currentHeaderTitleKey];
             document.getElementById('sidebarNavTitle').innerText = translations[currentLang].sidebarNavTitle;
             document.getElementById('menuPinned').innerText = translations[currentLang].menuPinned;
@@ -695,7 +694,7 @@
         function addPin(line, stationCode, stationFullName) {
             const newId = `${line}-${stationCode}`;
             if (!pinnedList.some(item => item.id === newId)) {
-                let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "SIL": "南港島綫", "TKE": "將軍澳綫", "TML": "屯馬綫", "EAL": "東鐵綫", "TCL": "東涌綫" };
+                let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "SIL": "南港島綫", "TKL": "將軍澳綫", "TML": "屯馬綫", "EAL": "東鐵綫", "TCL": "東涌綫" };
                 let lineName = lineNameMap[line] || line;
                 pinnedList.push({ id: newId, line: line, station: stationCode, name: `${stationFullName} - ${lineName}` });
                 alert(translations[currentLang].pinnedSuccess);
@@ -891,7 +890,6 @@
             for (const [lineCode, stations] of Object.entries(mtrDatabase)) {
                 stations.forEach(station => {
                     if (station.name.toLowerCase().includes(trimmed)) {
-                        // 避免重複加入同一個車站（如果跨綫重複）
                         if (!matches.some(m => m.code === station.code)) {
                             matches.push({ line: lineCode, code: station.code, name: station.name });
                         }
@@ -915,7 +913,6 @@
         function selectSuggestion(line, code, name) {
             document.getElementById('stationInputText').value = name;
             document.getElementById('suggestionsList').style.display = 'none';
-            // 自動幫手執行搜尋
             searchByTextSpecific(line, code, name);
         }
 
@@ -1000,7 +997,6 @@
             searchByTextSpecific(foundLine, foundStationCode, foundStationFullName);
         }
 
-        // 點擊頁面其他地方關閉建議選單
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.autocomplete-wrapper')) {
                 const list = document.getElementById('suggestionsList');
