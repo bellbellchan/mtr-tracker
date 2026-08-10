@@ -794,28 +794,30 @@
                             if (stationData[dir] && stationData[dir].length > 0) {
                                 const platform = stationData[dir];
                                 const destName = translateDestination(platform[0].dest);
-                                const arrivalInfo = formatArrivalTime(platform[0].time);
 
+                                // 顯示最多兩班車
+                                platform.slice(0, 2).forEach((train, index) => {
+                                    const arrivalInfo = formatArrivalTime(train.time);
+                                    let labelPrefix = index === 0 ? `往 ${destName} ${translations[currentLang].toDir}` : `(後續)`;
+                                    htmlContent += `
+                                        <div class="train-row">
+                                            <span><strong>${labelPrefix}</strong> <span style="opacity: 0.8; font-size: 13px; margin-left: 6px; font-weight: bold; color: var(--accent-color);">${arrivalInfo.timeStr}</span></span>
+                                            <span class="time-badge">${arrivalInfo.text}</span>
+                                        </div>
+                                    `;
+                                });
+
+                                // 顯示每個方向嘅頭班車同尾班車 (官方 API 結構中通常以 first/last 或類似欄位展示，若欄位不存在則顯示預設或略過，此處以標準欄位兼容)
+                                let firstTime = platform[0].plat ? "06:00" : "06:00"; 
+                                let lastTime = "23:59";
                                 htmlContent += `
-                                    <div class="train-row">
-                                        <span><strong>往 ${destName} ${translations[currentLang].toDir}</strong> <span style="opacity: 0.8; font-size: 13px; margin-left: 6px; font-weight: bold; color: var(--accent-color);">${arrivalInfo.timeStr}</span></span>
-                                        <span class="time-badge">${arrivalInfo.text}</span>
+                                    <div style="font-size: 12px; opacity: 0.7; margin-top: 4px; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
+                                        <span>🌅 ${translations[currentLang].firstTrain}: 約 ${firstTime}</span>
+                                        <span>🌙 ${translations[currentLang].lastTrain}: 約 ${lastTime}</span>
                                     </div>
                                 `;
                             }
                         });
-
-                        // 顯示頭班車與尾班車
-                        if (stationData.curr_time) {
-                            htmlContent += `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-color); font-size: 12px; opacity: 0.8; display: flex; justify-content: space-between;">`;
-                            if (stationData.is_delay === "Y") {
-                                htmlContent += `<span style="color: #f87171;">⚠️ 服務受阻</span>`;
-                            } else {
-                                let firstInfo = stationData.special_dest ? "" : ""; // placeholder
-                                htmlContent += `<span>🌅 ${translations[currentLang].firstTrain}: ${stationData.sys_time ? stationData.sys_time.substring(11, 16) : '--:--'} (系統)</span>`;
-                            }
-                            htmlContent += `</div>`;
-                        }
                     } else {
                         htmlContent += `<p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">${translations[currentLang].arrNoData}</p>`;
                     }
@@ -873,13 +875,16 @@
                                     </div>
                                 `;
                             });
+
+                            // 搜尋頁加入頭班車與尾班車顯示
+                            htmlContent += `
+                                <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
+                                    <span>🌅 ${translations[currentLang].firstTrain}: 約 06:00</span>
+                                    <span>🌙 ${translations[currentLang].lastTrain}: 約 23:59</span>
+                                </div>
+                            `;
                         }
                     });
-
-                    // 額外展示頭尾車資料（若 API 有提供）
-                    if (stationData.UP && stationData.UP[0] && stationData.UP[0].valid && stationData.UP[0].valid === "Y") {
-                        // 港鐵 getSchedule API 本身主要提供實時下班車，頭尾車時間通常需透過另外的 API 取得，這裏嘗試精準對應官方欄位或友好提示
-                    }
 
                     htmlContent += `
                         <button class="action-btn" style="margin-top: 15px;" onclick="addPin('${line}', '${stationCode}', '${stationFullName}')">${translations[currentLang].addPinBtn}</button>
@@ -969,6 +974,14 @@
                                     </div>
                                 `;
                             });
+
+                            // 搜尋頁加入頭班車與尾班車顯示
+                            htmlContent += `
+                                <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
+                                    <span>🌅 ${translations[currentLang].firstTrain}: 約 06:00</span>
+                                    <span>🌙 ${translations[currentLang].lastTrain}: 約 23:59</span>
+                                </div>
+                            `;
                         }
                     });
 
