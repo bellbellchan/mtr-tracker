@@ -248,17 +248,6 @@
             display: block;
         }
 
-        /* 主頁面已釘選站嘅列車時間樣式 */
-        .train-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed var(--border-color);
-            font-size: 14px;
-        }
-
         /* 搜尋結果：全新靚靚卡片行設計 */
         .direction-title {
             background-color: var(--row-bg);
@@ -826,8 +815,8 @@
 
                                 htmlContent += `
                                     <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
-                                        <span>🌅 ${translations[currentLang].firstTrain}: 正常服務</span>
-                                        <span>🌙 ${translations[currentLang].lastTrain}: 正常服務</span>
+                                        <span>🌅 ${translations[currentLang].firstTrain}: 06:00</span>
+                                        <span>🌙 ${translations[currentLang].lastTrain}: 23:59</span>
                                     </div>
                                 `;
                             }
@@ -892,8 +881,8 @@
 
                             htmlContent += `
                                 <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
-                                    <span>🌅 ${translations[currentLang].firstTrain}: 正常服務</span>
-                                    <span>🌙 ${translations[currentLang].lastTrain}: 正常服務</span>
+                                    <span>🌅 ${translations[currentLang].firstTrain}: 06:00</span>
+                                    <span>🌙 ${translations[currentLang].lastTrain}: 23:59</span>
                                 </div>
                             `;
                         }
@@ -990,8 +979,8 @@
 
                             htmlContent += `
                                 <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
-                                    <span>🌅 ${translations[currentLang].firstTrain}: 正常服務</span>
-                                    <span>🌙 ${translations[currentLang].lastTrain}: 正常服務</span>
+                                    <span>🌅 ${translations[currentLang].firstTrain}: 06:00</span>
+                                    <span>🌙 ${translations[currentLang].lastTrain}: 23:59</span>
                                 </div>
                             `;
                         }
