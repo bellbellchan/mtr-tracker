@@ -391,14 +391,14 @@
                 <label for="lineSelect" id="labelSelectLine">選擇鐵路綫：</label>
                 <select id="lineSelect" onchange="updateStationOptions()">
                     <option value="" disabled selected id="optSelectLineDefault">-- 請選擇鐵路綫 --</option>
-                    <option value="TWL">荃灣綫 (TWL)</option>
-                    <option value="ISL">港島綫 (ISL)</option>
-                    <option value="KTL">觀塘綫 (KTL)</option>
-                    <option value="SIL">南港島綫 (SIL)</option>
-                    <option value="TKL">將軍澳綫 (TKL)</option>
-                    <option value="EAL">東鐵綫 (EAL)</option>
-                    <option value="TML">屯馬綫 (TML)</option>
-                    <option value="TCL">東涌綫 (TCL)</option>
+                    <option value="TWL" id="optTWL">荃灣綫 (TWL)</option>
+                    <option value="ISL" id="optISL">港島綫 (ISL)</option>
+                    <option value="KTL" id="optKTL">觀塘綫 (KTL)</option>
+                    <option value="SIL" id="optSIL">南港島綫 (SIL)</option>
+                    <option value="TKL" id="optTKL">將軍澳綫 (TKL)</option>
+                    <option value="EAL" id="optEAL">東鐵綫 (EAL)</option>
+                    <option value="TML" id="optTML">屯馬綫 (TML)</option>
+                    <option value="TCL" id="optTCL">東涌綫 (TCL)</option>
                 </select>
 
                 <label for="stationSelect" id="labelSelectStation">選擇車站：</label>
@@ -597,10 +597,19 @@
                 tipPinnedText: "💡 提示：畫面每 15 秒會在背景自動更新一次。",
                 searchCardTitle: "🔍 搜尋全港車站候車時間",
                 labelDirectInput: "直接輸入車站名稱：",
+                placeholderInput: "例如: 將軍澳 / tko...",
                 btnTextSearch: "查詢",
                 orDivider: "- 或使用選單搜尋 -",
                 labelSelectLine: "選擇鐵路綫：",
                 optSelectLineDefault: "-- 請選擇鐵路綫 --",
+                optTWL: "荃灣綫 (TWL)",
+                optISL: "港島綫 (ISL)",
+                optKTL: "觀塘綫 (KTL)",
+                optSIL: "南港島綫 (SIL)",
+                optTKL: "將軍澳綫 (TKL)",
+                optEAL: "東鐵綫 (EAL)",
+                optTML: "屯馬綫 (TML)",
+                optTCL: "東涌綫 (TCL)",
                 labelSelectStation: "選擇車站：",
                 optSelectStationDefault: "-- 請先選擇鐵路綫 --",
                 btnMenuSearch: "立即查詢",
@@ -642,10 +651,19 @@
                 tipPinnedText: "💡 Tip: Data auto-refreshes every 15 seconds.",
                 searchCardTitle: "🔍 Search MTR Station Arrival",
                 labelDirectInput: "Direct Station Input:",
+                placeholderInput: "e.g., Tseung Kwan O / tko...",
                 btnTextSearch: "Search",
                 orDivider: "- Or use dropdown menu -",
                 labelSelectLine: "Select Line:",
                 optSelectLineDefault: "-- Select Line --",
+                optTWL: "Tsuen Wan Line (TWL)",
+                optISL: "Island Line (ISL)",
+                optKTL: "Kwun Tong Line (KTL)",
+                optSIL: "South Island Line (SIL)",
+                optTKL: "Tseung Kwan O Line (TKL)",
+                optEAL: "East Rail Line (EAL)",
+                optTML: "Tuen Ma Line (TML)",
+                optTCL: "Tung Chung Line (TCL)",
                 labelSelectStation: "Select Station:",
                 optSelectStationDefault: "-- Select Line First --",
                 btnMenuSearch: "Search Now",
@@ -730,10 +748,21 @@
             
             document.getElementById('searchCardTitle').innerText = translations[currentLang].searchCardTitle;
             document.getElementById('labelDirectInput').innerText = translations[currentLang].labelDirectInput;
+            document.getElementById('stationInputText').placeholder = translations[currentLang].placeholderInput;
             document.getElementById('btnTextSearch').innerText = translations[currentLang].btnTextSearch;
             document.getElementById('orDivider').innerText = translations[currentLang].orDivider;
             document.getElementById('labelSelectLine').innerText = translations[currentLang].labelSelectLine;
             document.getElementById('optSelectLineDefault').innerText = translations[currentLang].optSelectLineDefault;
+            
+            document.getElementById('optTWL').innerText = translations[currentLang].optTWL;
+            document.getElementById('optISL').innerText = translations[currentLang].optISL;
+            document.getElementById('optKTL').innerText = translations[currentLang].optKTL;
+            document.getElementById('optSIL').innerText = translations[currentLang].optSIL;
+            document.getElementById('optTKL').innerText = translations[currentLang].optTKL;
+            document.getElementById('optEAL').innerText = translations[currentLang].optEAL;
+            document.getElementById('optTML').innerText = translations[currentLang].optTML;
+            document.getElementById('optTCL').innerText = translations[currentLang].optTCL;
+
             document.getElementById('labelSelectStation').innerText = translations[currentLang].labelSelectStation;
             document.getElementById('optSelectStationDefault').innerText = translations[currentLang].optSelectStationDefault;
             document.getElementById('btnMenuSearch').innerText = translations[currentLang].btnMenuSearch;
