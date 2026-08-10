@@ -174,7 +174,7 @@
             margin-bottom: 8px;
         }
 
-        select {
+        select, input[type="text"] {
             width: 100%;
             padding: 10px;
             border-radius: 8px;
@@ -183,6 +183,7 @@
             color: var(--text-color);
             font-size: 14px;
             margin-bottom: 10px;
+            box-sizing: border-box;
         }
 
         /* 遮罩背景 */
@@ -286,16 +287,6 @@
         .unpin-btn:hover {
             opacity: 1;
         }
-
-        /* 港鐵路綫圖簡易版面 */
-        .map-line-box {
-            background-color: var(--row-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
@@ -311,23 +302,31 @@
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h3>🧭 導航選單</h3>
+            <h3 id="sidebarNavTitle">🧭 導航選單</h3>
             <button class="close-btn" onclick="toggleSidebar()">✕</button>
         </div>
 
-        <div class="menu-item active" onclick="switchPage('pinned', '⭐ 我的釘選站 (Pinned)', this)">⭐ 實時候車時間 (已Pin)</div>
-        <div class="menu-item" onclick="switchPage('search', '🔍 搜尋全港車站', this)">🔍 搜尋全港車站</div>
-        <div class="menu-item" onclick="switchPage('transfer', '🗺️ 港鐵路綫圖與轉車', this)">🗺️ 港鐵路綫圖與轉車</div>
-        <div class="menu-item" onclick="switchPage('lift', '🛗 車站地面升降機', this)">🛗 車站地面升降機</div>
+        <div class="menu-item active" onclick="switchPage('pinned', 'pinnedTitle', this)" id="menuPinned">⭐ 實時候車時間 (已Pin)</div>
+        <div class="menu-item" onclick="switchPage('search', 'searchTitle', this)" id="menuSearch">🔍 搜尋全港車站</div>
+        <div class="menu-item" onclick="switchPage('transfer', 'transferTitle', this)" id="menuTransfer">🗺️ 港鐵路綫圖與轉車</div>
+        <div class="menu-item" onclick="switchPage('lift', 'liftTitle', this)" id="menuLift">🛗 車站地面升降機</div>
 
         <div class="sidebar-section">
-            <label for="themeSelect">🎨 選擇外觀風格：</label>
+            <label for="themeSelect" id="themeLabel">🎨 選擇外觀風格：</label>
             <select id="themeSelect" onchange="changeTheme(this.value)">
                 <option value="dark">黑色風格 (Dark Mode)</option>
                 <option value="light">白色風格 (Light Mode)</option>
                 <option value="pink">粉紅色風格 (Pink Theme)</option>
                 <option value="blue">深藍色風格 (Dark Blue)</option>
                 <option value="natural">自然風格 (Natural Style)</option>
+            </select>
+        </div>
+
+        <div class="sidebar-section">
+            <label for="langSelect" id="langLabel">🌐 選擇語言 / Language：</label>
+            <select id="langSelect" onchange="changeLanguage(this.value)">
+                <option value="zh">繁體中文</option>
+                <option value="en">English</option>
             </select>
         </div>
     </div>
@@ -339,19 +338,28 @@
         <div id="page-pinned" class="page-content active">
             <div id="pinnedStationsContainer">
                 <div class="card">
-                    <p style="text-align: center;">⏳ 正在向港鐵系統取得實時數據...</p>
+                    <p style="text-align: center;" id="loadingPinnedText">⏳ 正在向港鐵系統取得實時數據...</p>
                 </div>
             </div>
-            <p style="text-align: center; font-size: 13px; opacity: 0.6;">💡 提示：畫面每 15 秒會在背景自動更新一次。</p>
+            <p style="text-align: center; font-size: 13px; opacity: 0.6;" id="tipPinnedText">💡 提示：畫面每 15 秒會在背景自動更新一次。</p>
         </div>
 
         <!-- 頁面 2：搜尋全港車站 -->
         <div id="page-search" class="page-content">
             <div class="card">
-                <h3>🔍 搜尋全港車站候車時間</h3>
-                <label for="lineSelect">選擇鐵路綫：</label>
+                <h3 id="searchCardTitle">🔍 搜尋全港車站候車時間</h3>
+                
+                <label for="stationInputText" id="labelDirectInput">直接輸入車站名稱：</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <input type="text" id="stationInputText" placeholder="例如: 旺角 / 金鐘..." style="margin-bottom:0; flex:1;">
+                    <button class="action-btn" style="width: auto; margin-top: 0; padding: 0 15px;" onclick="searchByText()" id="btnTextSearch">查詢</button>
+                </div>
+
+                <div style="text-align: center; margin: 10px 0; font-size: 12px; opacity: 0.5;" id="orDivider">- 或使用選單搜尋 -</div>
+
+                <label for="lineSelect" id="labelSelectLine">選擇鐵路綫：</label>
                 <select id="lineSelect" onchange="updateStationOptions()">
-                    <option value="" disabled selected>-- 請選擇鐵路綫 --</option>
+                    <option value="" disabled selected id="optSelectLineDefault">-- 請選擇鐵路綫 --</option>
                     <option value="TWL">荃灣綫 (TWL)</option>
                     <option value="ISL">港島綫 (ISL)</option>
                     <option value="KTL">觀塘綫 (KTL)</option>
@@ -362,12 +370,12 @@
                     <option value="TCL">東涌綫 (TCL)</option>
                 </select>
 
-                <label for="stationSelect">選擇車站：</label>
+                <label for="stationSelect" id="labelSelectStation">選擇車站：</label>
                 <select id="stationSelect">
-                    <option value="" disabled selected>-- 請先選擇鐵路綫 --</option>
+                    <option value="" disabled selected id="optSelectStationDefault">-- 請先選擇鐵路綫 --</option>
                 </select>
 
-                <button class="action-btn" onclick="searchStationTime()">立即查詢</button>
+                <button class="action-btn" onclick="searchStationTime()" id="btnMenuSearch">立即查詢</button>
             </div>
 
             <!-- 搜尋結果展示區 -->
@@ -377,37 +385,16 @@
         <!-- 頁面 3：港鐵路綫圖與轉車 -->
         <div id="page-transfer" class="page-content">
             <div class="card">
-                <h3>🗺️ 港鐵路綫快速指南</h3>
-                <p style="font-size: 13px; opacity: 0.8; margin-bottom: 15px;">主要轉車站及核心轉線資訊：</p>
-                
-                <div class="map-line-box">
-                    <strong>🔴 紅色：荃灣綫 (TWL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">中環 ⟷ 金鐘 ⟷ 旺角 ⟷ 太子 ⟷ 荃灣</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🔵 藍色：港島綫 (ISL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">堅尼地城 ⟷ 金鐘 ⟷ 中環 ⟷ 北角 ⟷ 柴灣</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🟢 綠色：觀塘綫 (KTL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">黃埔 ⟷ 油麻地 ⟷ 九龍塘 ⟷ 鑽石山 ⟷ 調景嶺</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🟤 啡色：屯馬綫 (TML)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">烏溪沙 ⟷ 大圍 ⟷ 鑽石山 ⟷ 何文田 ⟷ 紅磡 ⟷ 屯門</span>
-                </div>
-                <div class="map-line-box">
-                    <strong>🩵 青色：東鐵綫 (EAL)</strong><br>
-                    <span style="font-size: 13px; opacity: 0.8;">金鐘 ⟷ 會展 ⟷ 紅磡 ⟷ 九龍塘 ⟷ 大圍 ⟷ 上水 ⟷ 羅湖/落馬洲</span>
-                </div>
+                <h3 id="transferCardTitle">🗺️ 港鐵路綫圖與轉車</h3>
+                <p style="font-size: 13px; opacity: 0.8;" id="transferEmptyText">（內容準備中...）</p>
             </div>
         </div>
 
         <!-- 頁面 4：車站地面升降機 -->
         <div id="page-lift" class="page-content">
             <div class="card">
-                <h3>🛗 車站地面升降機指南</h3>
-                <p>（雙軌查詢與升降機卡片準備中...）</p>
+                <h3 id="liftCardTitle">🛗 車站地面升降機</h3>
+                <p id="liftEmptyText">（雙軌查詢與升降機卡片準備中...）</p>
             </div>
         </div>
 
@@ -475,21 +462,122 @@
             ]
         };
 
+        const translations = {
+            zh: {
+                pinnedTitle: "⭐ 我的釘選站 (Pinned)",
+                searchTitle: "🔍 搜尋全港車站",
+                transferTitle: "🗺️ 港鐵路綫圖與轉車",
+                liftTitle: "🛗 車站地面升降機",
+                sidebarNavTitle: "🧭 導航選單",
+                menuPinned: "⭐ 實時候車時間 (已Pin)",
+                menuSearch: "🔍 搜尋全港車站",
+                menuTransfer: "🗺️ 港鐵路綫圖與轉車",
+                menuLift: "🛗 車站地面升降機",
+                themeLabel: "🎨 選擇外觀風格：",
+                langLabel: "🌐 選擇語言 / Language：",
+                loadingPinnedText: "⏳ 正在向港鐵系統取得實時數據...",
+                tipPinnedText: "💡 提示：畫面每 15 秒會在背景自動更新一次。",
+                searchCardTitle: "🔍 搜尋全港車站候車時間",
+                labelDirectInput: "直接輸入車站名稱：",
+                btnTextSearch: "查詢",
+                orDivider: "- 或使用選單搜尋 -",
+                labelSelectLine: "選擇鐵路綫：",
+                optSelectLineDefault: "-- 請選擇鐵路綫 --",
+                labelSelectStation: "選擇車站：",
+                optSelectStationDefault: "-- 請先選擇鐵路綫 --",
+                btnMenuSearch: "立即查詢",
+                transferCardTitle: "🗺️ 港鐵路綫圖與轉車",
+                transferEmptyText: "（內容準備中...）",
+                liftCardTitle: "🛗 車站地面升降機",
+                liftEmptyText: "（雙軌查詢與升降機卡片準備中...）",
+                noPinnedYet: "⭐ 你目前未有任何釘選站！",
+                noPinnedSub: "去「搜尋全港車站」可以加返個站落嚟～",
+                networkError: "⚠️ 網絡連接發生錯誤，正嘗試自動重新整理...",
+                alertSelectLineStation: "⚠️ 請先選擇鐵路綫及車站！",
+                alertInputStation: "⚠️ 請輸入車站名稱！",
+                stationNotFound: "⚠️ 找不到該車站，請嘗試輸入更準確的車站名稱（例如：旺角 / 金鐘）。",
+                fetchingText: "⏳ 正在查詢實時資料...",
+                pinnedSuccess: "⭐ 成功加入釘選站！",
+                alreadyPinned: "💡 這個車站已經在你的釘選列表裏面了！",
+                queryFailed: "⚠️ 查詢失敗，請檢查網絡連接。",
+                toDir: "方向",
+                arrArrived: "已到達",
+                arrNoData: "暫無資料",
+                unpinTitle: "取消 Pin",
+                addPinBtn: "⭐ 將此站加入釘選 (Pin)"
+            },
+            en: {
+                pinnedTitle: "⭐ Pinned Stations",
+                searchTitle: "🔍 Search Stations",
+                transferTitle: "🗺️ MTR Map & Transfer",
+                liftTitle: "🛗 Station Ground Lifts",
+                sidebarNavTitle: "🧭 Navigation",
+                menuPinned: "⭐ Live Train Arrival (Pinned)",
+                menuSearch: "🔍 Search Stations",
+                menuTransfer: "🗺️ MTR Map & Transfer",
+                menuLift: "🛗 Station Ground Lifts",
+                themeLabel: "🎨 Appearance:",
+                langLabel: "🌐 Language:",
+                loadingPinnedText: "⏳ Fetching live data from MTR...",
+                tipPinnedText: "💡 Tip: Data auto-refreshes every 15 seconds.",
+                searchCardTitle: "🔍 Search MTR Station Arrival",
+                labelDirectInput: "Direct Station Input:",
+                btnTextSearch: "Search",
+                orDivider: "- Or use dropdown menu -",
+                labelSelectLine: "Select Line:",
+                optSelectLineDefault: "-- Select Line --",
+                labelSelectStation: "Select Station:",
+                optSelectStationDefault: "-- Select Line First --",
+                btnMenuSearch: "Search Now",
+                transferCardTitle: "🗺️ MTR Map & Transfer",
+                transferEmptyText: "(Content coming soon...)",
+                liftCardTitle: "🛗 Station Ground Lifts",
+                liftEmptyText: "(Query and lift cards coming soon...)",
+                noPinnedYet: "⭐ You have no pinned stations yet!",
+                noPinnedSub: "Go to \"Search Stations\" to add some to your list~",
+                networkError: "⚠️ Network error, attempting to refresh automatically...",
+                alertSelectLineStation: "⚠️ Please select a line and station first!",
+                alertInputStation: "⚠️ Please enter a station name!",
+                stationNotFound: "⚠️ Station not found. Please try entering a more accurate name (e.g., Mong Kok / Admiralty).",
+                fetchingText: "⏳ Fetching live data...",
+                pinnedSuccess: "⭐ Successfully pinned station!",
+                alreadyPinned: "💡 This station is already in your pinned list!",
+                queryFailed: "⚠️ Query failed, please check your network connection.",
+                toDir: "bound",
+                arrArrived: "Arrived",
+                arrNoData: "No Data",
+                unpinTitle: "Unpin",
+                addPinBtn: "⭐ Pin This Station"
+            }
+        };
+
+        let currentLang = 'zh';
         let pinnedList = [];
+        let currentPageId = 'pinned';
+        let currentHeaderTitleKey = 'pinnedTitle';
+        let activeMenuElement = null;
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
             document.getElementById('overlay').classList.toggle('show');
         }
 
-        function switchPage(pageId, titleText, element) {
+        function switchPage(pageId, titleKey, element) {
+            currentPageId = pageId;
+            currentHeaderTitleKey = titleKey;
+            
             const pages = document.querySelectorAll('.page-content');
             pages.forEach(page => page.classList.remove('active'));
             document.getElementById('page-' + pageId).classList.add('active');
-            document.getElementById('headerTitle').innerText = titleText;
+            
+            document.getElementById('headerTitleinnerText') || (document.getElementById('headerTitle').innerText = translations[currentLang][titleKey]);
+            
             const items = document.querySelectorAll('.menu-item');
             items.forEach(item => item.classList.remove('active'));
-            if(element) element.classList.add('active');
+            if(element) {
+                element.classList.add('active');
+                activeMenuElement = element;
+            }
             toggleSidebar();
 
             if (pageId === 'pinned') {
@@ -500,6 +588,44 @@
         function changeTheme(themeName) {
             document.documentElement.setAttribute('data-theme', themeName);
             localStorage.setItem('mtr_theme', themeName);
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('mtr_lang', lang);
+            
+            // 更新介面文字
+            document.getElementById('headerTitle').innerText = translations[currentLang][currentHeaderTitleKey];
+            document.getElementById('sidebarNavTitle').innerText = translations[currentLang].sidebarNavTitle;
+            document.getElementById('menuPinned').innerText = translations[currentLang].menuPinned;
+            document.getElementById('menuSearch').innerText = translations[currentLang].menuSearch;
+            document.getElementById('menuTransfer').innerText = translations[currentLang].menuTransfer;
+            document.getElementById('menuLift').innerText = translations[currentLang].menuLift;
+            document.getElementById('themeLabel').innerText = translations[currentLang].themeLabel;
+            document.getElementById('langLabel').innerText = translations[currentLang].langLabel;
+            
+            document.getElementById('loadingPinnedText').innerText = translations[currentLang].loadingPinnedText;
+            document.getElementById('tipPinnedText').innerText = translations[currentLang].tipPinnedText;
+            
+            document.getElementById('searchCardTitle').innerText = translations[currentLang].searchCardTitle;
+            document.getElementById('labelDirectInput').innerText = translations[currentLang].labelDirectInput;
+            document.getElementById('btnTextSearch').innerText = translations[currentLang].btnTextSearch;
+            document.getElementById('orDivider').innerText = translations[currentLang].orDivider;
+            document.getElementById('labelSelectLine').innerText = translations[currentLang].labelSelectLine;
+            document.getElementById('optSelectLineDefault').innerText = translations[currentLang].optSelectLineDefault;
+            document.getElementById('labelSelectStation').innerText = translations[currentLang].labelSelectStation;
+            document.getElementById('optSelectStationDefault').innerText = translations[currentLang].optSelectStationDefault;
+            document.getElementById('btnMenuSearch').innerText = translations[currentLang].btnMenuSearch;
+            
+            document.getElementById('transferCardTitle').innerText = translations[currentLang].transferCardTitle;
+            document.getElementById('transferEmptyText').innerText = translations[currentLang].transferEmptyText;
+            
+            document.getElementById('liftCardTitle').innerText = translations[currentLang].liftCardTitle;
+            document.getElementById('liftEmptyText').innerText = translations[currentLang].liftEmptyText;
+
+            if (currentPageId === 'pinned') {
+                fetchMTRData();
+            }
         }
 
         function removePin(id) {
@@ -513,17 +639,17 @@
                 let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "TML": "屯馬綫", "EAL": "東鐵綫" };
                 let lineName = lineNameMap[line] || line;
                 pinnedList.push({ id: newId, line: line, station: stationCode, name: `${stationFullName} - ${lineName}` });
-                alert("⭐ 成功加入釘選站！");
+                alert(translations[currentLang].pinnedSuccess);
                 fetchMTRData();
             } else {
-                alert("💡 這個車站已經在你的釘選列表裏面了！");
+                alert(translations[currentLang].alreadyPinned);
             }
         }
 
         function updateStationOptions() {
             const lineSelect = document.getElementById('lineSelect').value;
             const stationSelect = document.getElementById('stationSelect');
-            stationSelect.innerHTML = `<option value="" disabled selected>-- 請選擇車站 --</option>`;
+            stationSelect.innerHTML = `<option value="" disabled selected id="optSelectStationDefault">${translations[currentLang].optSelectStationDefault}</option>`;
 
             if (mtrDatabase[lineSelect]) {
                 mtrDatabase[lineSelect].forEach(station => {
@@ -545,7 +671,7 @@
         }
 
         function formatArrivalTime(rawTime) {
-            if (rawTime === undefined || rawTime === null) return { text: "暫無資料", timeStr: "" };
+            if (rawTime === undefined || rawTime === null) return { text: translations[currentLang].arrNoData, timeStr: "" };
 
             let arrivalDate;
             let num = Number(rawTime);
@@ -557,7 +683,7 @@
                 let minutes = String(arrivalDate.getMinutes()).padStart(2, '0');
                 let timeStr = `${hours}:${minutes}`;
 
-                let text = num <= 0 ? "已到達" : `${num} 分鐘`;
+                let text = num <= 0 ? translations[currentLang].arrArrived : `${num} 分鐘`;
                 return { text: text, timeStr: timeStr };
             } else {
                 arrivalDate = new Date(rawTime.replace(/-/g, "/"));
@@ -565,14 +691,14 @@
                 let diffMins = Math.ceil(diffMs / 60000);
 
                 if (isNaN(arrivalDate.getTime())) {
-                    return { text: "暫無資料", timeStr: "" };
+                    return { text: translations[currentLang].arrNoData, timeStr: "" };
                 }
 
                 let hours = String(arrivalDate.getHours()).padStart(2, '0');
                 let minutes = String(arrivalDate.getMinutes()).padStart(2, '0');
                 let timeStr = `${hours}:${minutes}`;
 
-                let text = diffMins <= 0 ? "已到達" : `${diffMins} 分鐘`;
+                let text = diffMins <= 0 ? translations[currentLang].arrArrived : `${diffMins} 分鐘`;
                 return { text: text, timeStr: timeStr };
             }
         }
@@ -581,7 +707,7 @@
             const container = document.getElementById('pinnedStationsContainer');
             
             if (pinnedList.length === 0) {
-                container.innerHTML = `<div class="card" style="text-align: center;"><p>⭐ 你目前未有任何釘選站！</p><p style="font-size: 13px; opacity: 0.6;">去「搜尋全港車站」可以加返個站落嚟～</p></div>`;
+                container.innerHTML = `<div class="card" style="text-align: center;"><p>${translations[currentLang].noPinnedYet}</p><p style="font-size: 13px; opacity: 0.6;">${translations[currentLang].noPinnedSub}</p></div>`;
                 return;
             }
 
@@ -594,7 +720,7 @@
 
                     htmlContent += `
                         <div class="card">
-                            <button class="unpin-btn" onclick="removePin('${item.id}')" title="取消 Pin">❌</button>
+                            <button class="unpin-btn" onclick="removePin('${item.id}')" title="${translations[currentLang].unpinTitle}">❌</button>
                             <h3>📌 ${item.name}</h3>
                     `;
 
@@ -609,14 +735,14 @@
 
                                 htmlContent += `
                                     <div class="train-row">
-                                        <span><strong>往 ${destName} 方向</strong> <span style="opacity: 0.8; font-size: 13px; margin-left: 6px; font-weight: bold; color: var(--accent-color);">${arrivalInfo.timeStr}</span></span>
+                                        <span><strong>往 ${destName} ${translations[currentLang].toDir}</strong> <span style="opacity: 0.8; font-size: 13px; margin-left: 6px; font-weight: bold; color: var(--accent-color);">${arrivalInfo.timeStr}</span></span>
                                         <span class="time-badge">${arrivalInfo.text}</span>
                                     </div>
                                 `;
                             }
                         });
                     } else {
-                        htmlContent += `<p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">暫時無法取得實時數據</p>`;
+                        htmlContent += `<p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">${translations[currentLang].arrNoData}</p>`;
                     }
 
                     htmlContent += `</div>`;
@@ -625,7 +751,7 @@
                 container.innerHTML = htmlContent;
             } catch (error) {
                 console.error("取得港鐵數據失敗:", error);
-                container.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">⚠️ 網絡連接發生錯誤，正嘗試自動重新整理...</p></div>`;
+                container.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">${translations[currentLang].networkError}</p></div>`;
             }
         }
 
@@ -635,14 +761,14 @@
             const resultContainer = document.getElementById('searchResultContainer');
 
             if (!line || !stationCode) {
-                alert("⚠️ 請先選擇鐵路綫及車站！");
+                alert(translations[currentLang].alertSelectLineStation);
                 return;
             }
 
             const stationDropdown = document.getElementById('stationSelect');
             const stationFullName = stationDropdown.options[stationDropdown.selectedIndex].text;
 
-            resultContainer.innerHTML = `<div class="card"><p style="text-align: center;">⏳ 正在查詢 ${stationFullName} 實時資料...</p></div>`;
+            resultContainer.innerHTML = `<div class="card"><p style="text-align: center;">${translations[currentLang].fetchingText}</p></div>`;
 
             try {
                 const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${line}&sta=${stationCode}`);
@@ -650,7 +776,7 @@
 
                 let htmlContent = `
                     <div class="card">
-                        <h3>🔍 ${stationFullName} 實時候車時間</h3>
+                        <h3>🔍 ${stationFullName}</h3>
                 `;
 
                 if (data.status === 1 && data.data && data.data[`${line}-${stationCode}`]) {
@@ -661,9 +787,8 @@
                             const platform = stationData[dir];
                             const destName = translateDestination(platform[0].dest);
 
-                            htmlContent += `<div class="direction-title">往 ${destName} 方向</div>`;
+                            htmlContent += `<div class="direction-title">往 ${destName} ${translations[currentLang].toDir}</div>`;
 
-                            // 檢視頭 4 程車，改用精美卡片行排列（不顯示月台）
                             platform.slice(0, 4).forEach((train) => {
                                 const arrivalInfo = formatArrivalTime(train.time);
                                 htmlContent += `
@@ -677,17 +802,94 @@
                     });
 
                     htmlContent += `
-                        <button class="action-btn" style="margin-top: 15px;" onclick="addPin('${line}', '${stationCode}', '${stationFullName}')">⭐ 將此站加入釘選 (Pin)</button>
+                        <button class="action-btn" style="margin-top: 15px;" onclick="addPin('${line}', '${stationCode}', '${stationFullName}')">${translations[currentLang].addPinBtn}</button>
                     `;
                 } else {
-                    htmlContent += `<p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">暫時無法取得該車站實時數據</p>`;
+                    htmlContent += `<p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">${translations[currentLang].arrNoData}</p>`;
                 }
 
                 htmlContent += `</div>`;
                 resultContainer.innerHTML = htmlContent;
 
             } catch (error) {
-                resultContainer.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">⚠️ 查詢失敗，請檢查網絡連接。</p></div>`;
+                resultContainer.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">${translations[currentLang].queryFailed}</p></div>`;
+            }
+        }
+
+        async function searchByText() {
+            const inputVal = document.getElementById('stationInputText').value.trim();
+            const resultContainer = document.getElementById('searchResultContainer');
+
+            if (!inputVal) {
+                alert(translations[currentLang].alertInputStation);
+                return;
+            }
+
+            // 在資料庫中尋找相符的車站
+            let foundLine = null;
+            let foundStationCode = null;
+            let foundStationFullName = null;
+
+            for (const [lineCode, stations] of Object.entries(mtrDatabase)) {
+                const matched = stations.find(s => s.name.includes(inputVal));
+                if (matched) {
+                    foundLine = lineCode;
+                    foundStationCode = matched.code;
+                    foundStationFullName = matched.name;
+                    break;
+                }
+            }
+
+            if (!foundLine) {
+                alert(translations[currentLang].stationNotFound);
+                return;
+            }
+
+            resultContainer.innerHTML = `<div class="card"><p style="text-align: center;">${translations[currentLang].fetchingText}</p></div>`;
+
+            try {
+                const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${foundLine}&sta=${foundStationCode}`);
+                const data = await response.json();
+
+                let htmlContent = `
+                    <div class="card">
+                        <h3>🔍 ${foundStationFullName}</h3>
+                `;
+
+                if (data.status === 1 && data.data && data.data[`${foundLine}-${foundStationCode}`]) {
+                    const stationData = data.data[`${foundLine}-${foundStationCode}`];
+
+                    ['UP', 'DOWN'].forEach(dir => {
+                        if (stationData[dir] && stationData[dir].length > 0) {
+                            const platform = stationData[dir];
+                            const destName = translateDestination(platform[0].dest);
+
+                            htmlContent += `<div class="direction-title">往 ${destName} ${translations[currentLang].toDir}</div>`;
+
+                            platform.slice(0, 4).forEach((train) => {
+                                const arrivalInfo = formatArrivalTime(train.time);
+                                htmlContent += `
+                                    <div class="train-card-row">
+                                        <span class="train-time-left">${arrivalInfo.timeStr}</span>
+                                        <span class="time-badge">${arrivalInfo.text}</span>
+                                    </div>
+                                `;
+                            });
+                        }
+                    });
+
+                    htmlContent += `
+                        <button class="action-btn" style="margin-top: 15px;" onclick="addPin('${foundLine}', '${foundStationCode}', '${foundStationFullName}')">${translations[currentLang].addPinBtn}</button>
+                    `;
+                } else {
+                    htmlContent += `<p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">${translations[currentLang].arrNoData}</p>`;
+                }
+
+                htmlContent += `</div>`;
+                resultContainer.innerHTML = htmlContent;
+
+            } catch (error) {
+                resultContainer.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">${translations[currentLang].queryFailed}</p></div>`;
             }
         }
 
@@ -696,6 +898,12 @@
             if (savedTheme) {
                 document.documentElement.setAttribute('data-theme', savedTheme);
                 document.getElementById('themeSelect').value = savedTheme;
+            }
+
+            const savedLang = localStorage.getItem('mtr_lang');
+            if (savedLang) {
+                document.getElementById('langSelect').value = savedLang;
+                changeLanguage(savedLang);
             }
 
             fetchMTRData();
