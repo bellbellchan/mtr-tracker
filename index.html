@@ -884,8 +884,6 @@
             const target = new Date();
             target.setHours(h, m, 0, 0);
 
-            // 如果現時時間已經超過該時間，且差距在 12 小時以內，則視為已經過
-            // （避免凌晨 1 點去比對早上 6 點的頭班車誤判為已過）
             const diff = now - target;
             return diff > 0 && diff < 12 * 3600 * 1000;
         }
@@ -938,7 +936,8 @@
                                 }
 
                                 let lastDisplay = flTime.last;
-                                if (hasTimePassed(flTime.last)) {
+                                const isLastPassed = hasTimePassed(flTime.last);
+                                if (isLastPassed) {
                                     lastDisplay = `${flTime.last} (${translations[currentLang].lastTrainDeparted})`;
                                 }
 
