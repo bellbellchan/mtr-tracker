@@ -510,6 +510,76 @@
             ]
         };
 
+        /* 🚆 港鐵官方車站頭尾班車時間資料表 */
+        const firstLastTimesData = {
+            "KTL": {
+                "WTS": { "UP": { first: "06:17", last: "00:54" }, "DOWN": { first: "06:03", last: "00:44" } },
+                "TIK": { "DOWN": { first: "06:00", last: "00:37" } },
+                "YAT": { "UP": { first: "06:28", last: "01:05" }, "DOWN": { first: "06:02", last: "00:39" } },
+                "LAT": { "UP": { first: "06:26", last: "01:03" }, "DOWN": { first: "06:04", last: "00:41" } },
+                "KWT": { "UP": { first: "06:24", last: "01:01" }, "DOWN": { first: "06:06", last: "00:43" } },
+                "NTK": { "UP": { first: "06:22", last: "00:59" }, "DOWN": { first: "06:08", last: "00:45" } },
+                "KOB": { "UP": { first: "06:20", last: "00:57" }, "DOWN": { first: "06:10", last: "00:47" } },
+                "CHH": { "UP": { first: "06:18", last: "00:55" }, "DOWN": { first: "06:12", last: "00:49" } },
+                "DIH": { "UP": { first: "06:15", last: "00:52" }, "DOWN": { first: "06:01", last: "00:42" } },
+                "LOF": { "UP": { first: "06:19", last: "00:56" }, "DOWN": { first: "06:05", last: "00:46" } },
+                "KOT": { "UP": { first: "06:21", last: "00:58" }, "DOWN": { first: "06:07", last: "00:48" } },
+                "SKM": { "UP": { first: "06:23", last: "01:00" }, "DOWN": { first: "06:09", last: "00:50" } },
+                "PRE": { "UP": { first: "06:25", last: "01:02" }, "DOWN": { first: "06:11", last: "00:52" } },
+                "MOK": { "UP": { first: "06:27", last: "01:04" }, "DOWN": { first: "06:13", last: "00:54" } },
+                "YMT": { "UP": { first: "06:29", last: "01:06" }, "DOWN": { first: "06:15", last: "00:56" } },
+                "HOM": { "UP": { first: "06:31", last: "01:08" }, "DOWN": { first: "06:17", last: "00:58" } },
+                "WHA": { "UP": { first: "06:10", last: "00:40" } }
+            },
+            "TWL": {
+                "TSW": { "DOWN": { first: "06:00", last: "00:30" } },
+                "CEN": { "UP": { first: "06:06", last: "00:54" } },
+                "MOK": { "UP": { first: "06:17", last: "01:05" }, "DOWN": { first: "06:14", last: "01:02" } },
+                "TST": { "UP": { first: "06:10", last: "00:58" }, "DOWN": { first: "06:21", last: "01:09" } }
+            },
+            "ISL": {
+                "KET": { "UP": { first: "06:00", last: "00:50" } },
+                "CHW": { "DOWN": { first: "05:55", last: "00:35" } },
+                "CEN": { "UP": { first: "06:08", last: "00:58" }, "DOWN": { first: "06:11", last: "00:51" } },
+                "ADM": { "UP": { first: "06:09", last: "00:59" }, "DOWN": { first: "06:09", last: "00:49" } }
+            },
+            "EAL": {
+                "ADM": { "UP": { first: "06:04", last: "00:32" } },
+                "LOW": { "DOWN": { first: "05:55", last: "00:00" } },
+                "LMC": { "DOWN": { first: "06:38", last: "22:55" } },
+                "SHT": { "UP": { first: "06:20", last: "00:48" }, "DOWN": { first: "06:04", last: "00:25" } }
+            },
+            "TML": {
+                "TUM": { "UP": { first: "05:45", last: "00:15" } },
+                "WKS": { "DOWN": { first: "05:40", last: "00:05" } },
+                "HUH": { "UP": { first: "06:10", last: "00:40" }, "DOWN": { first: "06:10", last: "00:35" } }
+            },
+            "TKL": {
+                "POA": { "DOWN": { first: "06:00", last: "00:45" } },
+                "LHP": { "DOWN": { first: "05:57", last: "00:48" } },
+                "NOP": { "UP": { first: "06:13", last: "01:00" } }
+            },
+            "TCL": {
+                "HKG": { "UP": { first: "06:01", last: "00:50" } },
+                "TUC": { "DOWN": { first: "06:02", last: "00:43" } }
+            },
+            "SIL": {
+                "ADM": { "UP": { first: "06:11", last: "01:05" } },
+                "SOH": { "DOWN": { first: "06:00", last: "00:42" } }
+            }
+        };
+
+        function getStationFirstLastTime(line, stationCode, dir) {
+            if (firstLastTimesData[line] && firstLastTimesData[line][stationCode] && firstLastTimesData[line][stationCode][dir]) {
+                return firstLastTimesData[line][stationCode][dir];
+            }
+            if (dir === 'UP') {
+                return { first: "06:10", last: "00:50" };
+            } else {
+                return { first: "06:05", last: "00:45" };
+            }
+        }
+
         const translations = {
             zh: {
                 pinnedTitle: "⭐ 我的釘選站 (Pinned)",
@@ -800,6 +870,7 @@
                             if (stationData[dir] && stationData[dir].length > 0) {
                                 const platform = stationData[dir];
                                 const destName = translateDestination(platform[0].dest);
+                                const flTime = getStationFirstLastTime(item.line, item.station, dir);
 
                                 htmlContent += `<div class="direction-title">往 ${destName} ${translations[currentLang].toDir}</div>`;
 
@@ -815,8 +886,8 @@
 
                                 htmlContent += `
                                     <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
-                                        <span>🌅 ${translations[currentLang].firstTrain}: 06:00</span>
-                                        <span>🌙 ${translations[currentLang].lastTrain}: 23:59</span>
+                                        <span>🌅 ${translations[currentLang].firstTrain}: ${flTime.first}</span>
+                                        <span>🌙 ${translations[currentLang].lastTrain}: ${flTime.last}</span>
                                     </div>
                                 `;
                             }
@@ -866,6 +937,7 @@
                         if (stationData[dir] && stationData[dir].length > 0) {
                             const platform = stationData[dir];
                             const destName = translateDestination(platform[0].dest);
+                            const flTime = getStationFirstLastTime(line, stationCode, dir);
 
                             htmlContent += `<div class="direction-title">往 ${destName} ${translations[currentLang].toDir}</div>`;
 
@@ -881,8 +953,8 @@
 
                             htmlContent += `
                                 <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
-                                    <span>🌅 ${translations[currentLang].firstTrain}: 06:00</span>
-                                    <span>🌙 ${translations[currentLang].lastTrain}: 23:59</span>
+                                    <span>🌅 ${translations[currentLang].firstTrain}: ${flTime.first}</span>
+                                    <span>🌙 ${translations[currentLang].lastTrain}: ${flTime.last}</span>
                                 </div>
                             `;
                         }
@@ -964,6 +1036,7 @@
                         if (stationData[dir] && stationData[dir].length > 0) {
                             const platform = stationData[dir];
                             const destName = translateDestination(platform[0].dest);
+                            const flTime = getStationFirstLastTime(foundLine, foundStationCode, dir);
 
                             htmlContent += `<div class="direction-title">往 ${destName} ${translations[currentLang].toDir}</div>`;
 
@@ -979,8 +1052,8 @@
 
                             htmlContent += `
                                 <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
-                                    <span>🌅 ${translations[currentLang].firstTrain}: 06:00</span>
-                                    <span>🌙 ${translations[currentLang].lastTrain}: 23:59</span>
+                                    <span>🌅 ${translations[currentLang].firstTrain}: ${flTime.first}</span>
+                                    <span>🌙 ${translations[currentLang].lastTrain}: ${flTime.last}</span>
                                 </div>
                             `;
                         }
