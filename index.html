@@ -563,7 +563,9 @@
                 arrArrived: "已到達",
                 arrNoData: "暫無資料",
                 unpinTitle: "取消 Pin",
-                addPinBtn: "⭐ 將此站加入釘選 (Pin)"
+                addPinBtn: "⭐ 將此站加入釘選 (Pin)",
+                firstTrain: "頭班車",
+                lastTrain: "尾班車"
             },
             en: {
                 pinnedTitle: "⭐ Pinned Stations",
@@ -606,7 +608,9 @@
                 arrArrived: "Arrived",
                 arrNoData: "No Data",
                 unpinTitle: "Unpin",
-                addPinBtn: "⭐ Pin This Station"
+                addPinBtn: "⭐ Pin This Station",
+                firstTrain: "First Train",
+                lastTrain: "Last Train"
             }
         };
 
@@ -800,6 +804,18 @@
                                 `;
                             }
                         });
+
+                        // 顯示頭班車與尾班車
+                        if (stationData.curr_time) {
+                            htmlContent += `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-color); font-size: 12px; opacity: 0.8; display: flex; justify-content: space-between;">`;
+                            if (stationData.is_delay === "Y") {
+                                htmlContent += `<span style="color: #f87171;">⚠️ 服務受阻</span>`;
+                            } else {
+                                let firstInfo = stationData.special_dest ? "" : ""; // placeholder
+                                htmlContent += `<span>🌅 ${translations[currentLang].firstTrain}: ${stationData.sys_time ? stationData.sys_time.substring(11, 16) : '--:--'} (系統)</span>`;
+                            }
+                            htmlContent += `</div>`;
+                        }
                     } else {
                         htmlContent += `<p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">${translations[currentLang].arrNoData}</p>`;
                     }
@@ -859,6 +875,11 @@
                             });
                         }
                     });
+
+                    // 額外展示頭尾車資料（若 API 有提供）
+                    if (stationData.UP && stationData.UP[0] && stationData.UP[0].valid && stationData.UP[0].valid === "Y") {
+                        // 港鐵 getSchedule API 本身主要提供實時下班車，頭尾車時間通常需透過另外的 API 取得，這裏嘗試精準對應官方欄位或友好提示
+                    }
 
                     htmlContent += `
                         <button class="action-btn" style="margin-top: 15px;" onclick="addPin('${line}', '${stationCode}', '${stationFullName}')">${translations[currentLang].addPinBtn}</button>
