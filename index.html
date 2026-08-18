@@ -782,12 +782,6 @@
 
             if (currentPageId === 'pinned') {
                 fetchMTRData();
-            } else if (currentPageId === 'search') {
-                // 若當前在搜尋頁面且已有搜尋結果，重新整理搜尋結果以套用語言
-                const activeQuery = document.getElementById('stationInputText').value.trim();
-                if (activeQuery) {
-                    // 保持現有顯示
-                }
             }
         }
 
@@ -1061,7 +1055,7 @@
             }
         }
 
-        // Autocomplete 輸入聯想功能 (支援中英文搜尋)
+        // Autocomplete 輸入聯想功能 (支援中英文搜尋，下拉選單只顯示站名)
         function handleInputSearch(query) {
             const listContainer = document.getElementById('suggestionsList');
             const trimmed = query.trim().toLowerCase();
@@ -1078,18 +1072,12 @@
                     const matchZh = station.name.toLowerCase().includes(trimmed);
                     const matchEn = station.nameEn.toLowerCase().includes(trimmed);
                     if (matchZh || matchEn) {
-                        // 避免同一站重覆，但允許不同線出現
-                        if (!matches.some(m => m.code === station.code && m.line === lineCode)) {
-                            let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "SIL": "南港島綫", "TKL": "將軍澳綫", "TML": "屯馬綫", "EAL": "東鐵綫", "TCL": "東涌綫" };
-                            let lineNameEnMap = { "TWL": "Tsuen Wan Line", "ISL": "Island Line", "KTL": "Kwun Tong Line", "SIL": "South Island Line", "TKL": "Tseung Kwan O Line", "TML": "Tuen Ma Line", "EAL": "East Rail Line", "TCL": "Tung Chung Line" };
-                            
+                        // 以車站代號去重，確保同一個站唔會喺下拉選單出幾次
+                        if (!matches.some(m => m.code === station.code)) {
                             matches.push({ 
-                                line: lineCode, 
                                 code: station.code, 
                                 name: station.name, 
-                                nameEn: station.nameEn,
-                                lineName: lineNameMap[lineCode],
-                                lineNameEn: lineNameEnMap[lineCode]
+                                nameEn: station.nameEn
                             });
                         }
                     }
@@ -1099,8 +1087,8 @@
             if (matches.length > 0) {
                 let html = '';
                 matches.forEach(m => {
-                    let displayTitle = currentLang === 'en' ? `${m.nameEn} - ${m.lineNameEn}` : `${m.name} - ${m.lineName}`;
-                    html += `<div class="suggestion-item" onclick="selectSuggestion('${m.line}', '${m.code}', '${m.name}', '${m.nameEn}')">${displayTitle}</div>`;
+                    let displayTitle = currentLang === 'en' ? `${m.nameEn}` : `${m.name}`;
+                    html += `<div class="suggestion-item" onclick="selectSuggestion('${m.code}', '${m.name}', '${m.nameEn}')">${displayTitle}</div>`;
                 });
                 listContainer.innerHTML = html;
                 listContainer.style.display = 'block';
@@ -1110,91 +1098,19 @@
             }
         }
 
-        function selectSuggestion(line, code, name, nameEn) {
+        function selectSuggestion(code, name, nameEn) {
             let displayTitle = currentLang === 'en' ? `${nameEn}` : `${name}`;
             document.getElementById('stationInputText').value = displayTitle;
             document.getElementById('suggestionsList').style.display = 'none';
-            searchByTextSpecific(line, code, name, nameEn);
+            searchByStationName(name, nameEn);
         }
 
-        async function searchByTextSpecific(foundLine, foundStationCode, foundStationFullName, foundStationFullNameEn) {
-            const resultContainer = document.getElementById('searchResultContainer');
-            let displayStationName = currentLang === 'en' ? foundStationFullNameEn : foundStationFullName;
-            resultContainer.innerHTML = `<div class="card"><p style="text-align: center;">${translations[currentLang].fetchingText}</p></div>`;
-
-            try {
-                const response = await fetch(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${foundLine}&sta=${foundStationCode}`);
-                const data = await response.json();
-
-                let htmlContent = `
-                    <div class="card">
-                        <h3>🔍 ${displayStationName}</h3>
-                `;
-
-                if (data.status === 1 && data.data && data.data[`${foundLine}-${foundStationCode}`]) {
-                    const stationData = data.data[`${foundLine}-${foundStationCode}`];
-
-                    ['UP', 'DOWN'].forEach(dir => {
-                        if (stationData[dir] && stationData[dir].length > 0) {
-                            const platform = stationData[dir];
-                            const destName = translateDestination(platform[0].dest);
-                            const flTime = getStationFirstLastTime(foundLine, foundStationCode, dir);
-
-                            htmlContent += `<div class="direction-title">${currentLang === 'en' ? 'To ' : '往 '}${destName} ${translations[currentLang].toDir}</div>`;
-
-                            platform.slice(0, 2).forEach((train) => {
-                                const arrivalInfo = formatArrivalTime(train.time);
-                                htmlContent += `
-                                    <div class="train-card-row">
-                                        <span class="train-time-left">${arrivalInfo.timeStr}</span>
-                                        <span class="time-badge">${arrivalInfo.text}</span>
-                                    </div>
-                                `;
-                            });
-
-                            let firstDisplay = flTime.first;
-                            let lastDisplay = flTime.last;
-
-                            htmlContent += `
-                                <div style="font-size: 12px; opacity: 0.7; margin: 6px 0 12px 0; display: flex; justify-content: space-between; padding-left: 5px; border-left: 2px solid var(--accent-color);">
-                                    <span>🌅 ${translations[currentLang].firstTrain}: ${firstDisplay}</span>
-                                    <span>🌙 ${translations[currentLang].lastTrain}: ${lastDisplay}</span>
-                                </div>
-                            `;
-                        }
-                    });
-
-                    htmlContent += `
-                        <button class="action-btn" style="margin-top: 15px;" onclick="addPin('${foundLine}', '${foundStationCode}', '${foundStationFullName}', '${foundStationFullNameEn}')">${translations[currentLang].addPinBtn}</button>
-                    `;
-                } else {
-                    htmlContent += `<p style="font-size: 14px; opacity: 0.7; margin-top: 10px;">${translations[currentLang].arrNoData}</p>`;
-                }
-
-                htmlContent += `</div>`;
-                resultContainer.innerHTML = htmlContent;
-
-            } catch (error) {
-                resultContainer.innerHTML = `<div class="card"><p style="text-align: center; color: #f87171;">${translations[currentLang].queryFailed}</p></div>`;
-            }
-        }
-
-        async function searchByText() {
-            const inputVal = document.getElementById('stationInputText').value.trim();
-            document.getElementById('suggestionsList').style.display = 'none';
-
-            if (!inputVal) {
-                alert(translations[currentLang].alertInputStation);
-                return;
-            }
-
+        async function searchByStationName(targetName, targetNameEn) {
             let matches = [];
 
             for (const [lineCode, stations] of Object.entries(mtrDatabase)) {
                 stations.forEach(s => {
-                    const matchZh = s.name.toLowerCase().includes(inputVal.toLowerCase());
-                    const matchEn = s.nameEn.toLowerCase().includes(inputVal.toLowerCase());
-                    if (matchZh || matchEn) {
+                    if (s.name === targetName || s.nameEn.toLowerCase() === targetNameEn.toLowerCase()) {
                         matches.push({ line: lineCode, code: s.code, name: s.name, nameEn: s.nameEn });
                     }
                 });
@@ -1205,8 +1121,8 @@
                 return;
             }
 
-            // 如果有多條線（例如九龍塘站同時有觀塘綫同東鐵綫），將所有匹配的線路結果一次過全部show晒出嚟！
             let resultContainer = document.getElementById('searchResultContainer');
+            let displayStationTitle = currentLang === 'en' ? targetNameEn : targetName;
             resultContainer.innerHTML = `<div class="card"><p style="text-align: center;">${translations[currentLang].fetchingText}</p></div>`;
 
             let combinedHtml = "";
@@ -1219,7 +1135,7 @@
                     let lineNameMap = { "TWL": "荃灣綫", "ISL": "港島綫", "KTL": "觀塘綫", "SIL": "南港島綫", "TKL": "將軍澳綫", "TML": "屯馬綫", "EAL": "東鐵綫", "TCL": "東涌綫" };
                     let lineNameEnMap = { "TWL": "Tsuen Wan Line", "ISL": "Island Line", "KTL": "Kwun Tong Line", "SIL": "South Island Line", "TKL": "Tseung Kwan O Line", "TML": "Tuen Ma Line", "EAL": "East Rail Line", "TCL": "Tung Chung Line" };
                     
-                    let lineTitle = currentLang === 'en' ? `${match.nameEn} (${lineNameEnMap[match.line]})` : `${match.name} (${lineNameMap[match.line]})`;
+                    let lineTitle = currentLang === 'en' ? `${displayStationTitle} (${lineNameEnMap[match.line]})` : `${displayStationTitle} (${lineNameMap[match.line]})`;
 
                     combinedHtml += `
                         <div class="card">
@@ -1273,6 +1189,41 @@
             }
 
             resultContainer.innerHTML = combinedHtml || `<div class="card"><p style="text-align: center; color: #f87171;">${translations[currentLang].queryFailed}</p></div>`;
+        }
+
+        async function searchByText() {
+            const inputVal = document.getElementById('stationInputText').value.trim();
+            document.getElementById('suggestionsList').style.display = 'none';
+
+            if (!inputVal) {
+                alert(translations[currentLang].alertInputStation);
+                return;
+            }
+
+            let foundName = "";
+            let foundNameEn = "";
+            let matched = false;
+
+            for (const [lineCode, stations] of Object.entries(mtrDatabase)) {
+                for (const s of stations) {
+                    const matchZh = s.name.toLowerCase() === inputVal.toLowerCase() || s.name.toLowerCase().includes(inputVal.toLowerCase());
+                    const matchEn = s.nameEn.toLowerCase() === inputVal.toLowerCase() || s.nameEn.toLowerCase().includes(inputVal.toLowerCase());
+                    if (matchZh || matchEn) {
+                        foundName = s.name;
+                        foundNameEn = s.nameEn;
+                        matched = true;
+                        break;
+                    }
+                }
+                if (matched) break;
+            }
+
+            if (!matched) {
+                alert(translations[currentLang].stationNotFound);
+                return;
+            }
+
+            searchByStationName(foundName, foundNameEn);
         }
 
         document.addEventListener('click', function(e) {
